@@ -1,8 +1,21 @@
+using Microsoft.EntityFrameworkCore;
+using RecipeSharingApi.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // OpenAPI
 builder.Services.AddOpenApi();
 
+// Controllers
+builder.Services.AddControllers();
+
+// Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(
+    connectionString,
+    ServerVersion.AutoDetect(connectionString)));
+    
 var app = builder.Build();
 
 // HTTP request pipeline
@@ -11,6 +24,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+app.MapControllers();
 
 app.Run();
