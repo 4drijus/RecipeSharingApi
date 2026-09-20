@@ -19,6 +19,7 @@ public class RecipesController : ControllerBase
 
     // GET (api/recipes)
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<RecipeDto>>> GetRecipes()
     {
         var recipes = await _context.Recipes.Select(r => new RecipeDto
@@ -37,6 +38,8 @@ public class RecipesController : ControllerBase
 
     // GET (api/recipes/id)
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RecipeDto>> GetRecipe(int id)
     {
         var recipe = await _context.Recipes.Where(r => r.Id == id)
@@ -61,8 +64,17 @@ public class RecipesController : ControllerBase
 
     // POST
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<RecipeDto>> CreateRecipe(RecipeDto recipeDto)
     {
+        var categoryExists = await _context.Categories.AnyAsync(c => c.Id == recipeDto.CategoryId);
+
+        if (!categoryExists)
+        {
+            return BadRequest("Nurodyta kategorija neegzistuoja");
+        }
+
         var recipe = new Recipe
         {
             Title = recipeDto.Title,
@@ -70,7 +82,7 @@ public class RecipesController : ControllerBase
             Instructions = recipeDto.Instructions,
             PreparationTime = recipeDto.PreparationTime,
             CategoryId = recipeDto.CategoryId,
-            CreatedAt = recipeDto.CreatedAt
+            CreatedAt = DateTime.Now,
         };
 
         _context.Recipes.Add(recipe);
@@ -93,8 +105,18 @@ public class RecipesController : ControllerBase
 
     // PUT
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateRecipe (int id, RecipeDto recipeDto)
     {
+        var categoryExists = await _context.Categories.AnyAsync(c => c.Id == recipeDto.CategoryId);
+
+        if (!categoryExists)
+        {
+            return BadRequest("Nurodyta kategorija neegzistuoja");
+        }
+
         var recipe = await _context.Recipes.FindAsync(id);
 
         if (recipe == null)
@@ -107,7 +129,7 @@ public class RecipesController : ControllerBase
         recipe.Instructions = recipeDto.Instructions;
         recipe.PreparationTime = recipeDto.PreparationTime;
         recipe.CategoryId = recipeDto.CategoryId;
-        recipe.CreatedAt = recipeDto.CreatedAt;
+        recipe.CreatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
 
@@ -125,6 +147,8 @@ public class RecipesController : ControllerBase
 
     // DELETE
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRecipe (int id)
     {
         var recipe = await _context.Recipes.FindAsync(id);

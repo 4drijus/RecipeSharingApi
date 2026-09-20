@@ -19,6 +19,8 @@ public class RecipeIngredientsController : ControllerBase
 
     // GET (api/recipes/1/ingredients)
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<RecipeIngredientDto>>> GetIngredients(int recipeId)
     {
         var recipeExists = await _context.Recipes.AnyAsync(r => r.Id == recipeId);
@@ -43,9 +45,11 @@ public class RecipeIngredientsController : ControllerBase
 
     // GET (api/recipes/1/ingredients/id)
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RecipeIngredientDto>> GetIngredient(int recipeId, int id)
     {
-        var ingredient = await _context.RecipeIngredients.Where(i =>recipeId == recipeId && i.Id == id)
+        var ingredient = await _context.RecipeIngredients.Where(i => i.RecipeId == recipeId && i.Id == id)
         .Select(i => new RecipeIngredientDto
         {
            Id = i.Id,
@@ -65,6 +69,9 @@ public class RecipeIngredientsController : ControllerBase
 
     // POST
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RecipeIngredientDto>> CreateIngredient (int recipeId, RecipeIngredientDto ingredientDto)
     {
         var recipeExists = await _context.Recipes.AnyAsync(r => r.Id == recipeId);
@@ -103,7 +110,10 @@ public class RecipeIngredientsController : ControllerBase
 
     // PUT
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateIngredient( int recipeId, int id, RecipeIngredient ingredientDto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateIngredient( int recipeId, int id, RecipeIngredientDto ingredientDto)
     {
         var ingredient = await _context.RecipeIngredients.FirstOrDefaultAsync(i => i.Id == id && i.RecipeId == recipeId);
 
@@ -130,6 +140,8 @@ public class RecipeIngredientsController : ControllerBase
 
     // DELETE
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteIngredient(int recipeId, int id)
     {
         var ingredient = await _context.RecipeIngredients.FirstOrDefaultAsync(i => i.Id == id && i.RecipeId == recipeId);

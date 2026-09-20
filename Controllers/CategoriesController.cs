@@ -19,6 +19,7 @@ public class CategoriesController : ControllerBase
 
     // GET (api/categories)
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
     {
         var categories = await _context.Categories.Select(c => new CategoryDto
@@ -34,6 +35,8 @@ public class CategoriesController : ControllerBase
 
     // GET (api/categories/id)
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryDto>> GetCategory(int id)
     {
         var category = await _context.Categories.Where(c => c.Id == id)
@@ -54,6 +57,8 @@ public class CategoriesController : ControllerBase
 
     // POST
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryDto>> CreateCategory(CategoryDto categoryDto)
     {
         var category = new Category
@@ -78,6 +83,9 @@ public class CategoriesController : ControllerBase
 
     // PUT
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCategory (int id, CategoryDto categoryDto)
     {
         var category = await _context.Categories.FindAsync(id);
@@ -101,8 +109,10 @@ public class CategoriesController : ControllerBase
     }
 
 
-    // DELTE
+    // DELETE
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCategory (int id)
     {
         var category = await _context.Categories.FindAsync(id);
