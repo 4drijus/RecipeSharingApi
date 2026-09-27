@@ -12,4 +12,5 @@ public class RecipeDetailsDto
     public DateTime CreatedAt { get; set; }
     public CategoryDto? Category { get; set; }
     public List<RecipeIngredientDto> Ingredients { get; set; } = new();
+    public List<HypermediaLinkDto> Links { get; set; } = new();
 }

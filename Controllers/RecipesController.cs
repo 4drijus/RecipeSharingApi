@@ -20,9 +20,9 @@ public class RecipesController : ControllerBase
 
     // GET (api/recipes)
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedRecipesDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<RecipeDto>>> GetRecipes(int page, int pageSize = 10, int? categoryId = null)
+    public async Task<ActionResult<PagedRecipesDto>> GetRecipes(int page, int pageSize = 10, int? categoryId = null)
     {
         if (page < 1 || pageSize < 1 || pageSize > 100)
         {
@@ -234,7 +234,31 @@ public class RecipesController : ControllerBase
                         Name = i.Name,
                         Quantity = i.Quantity,
                         Unit = i.Unit
-                    }).ToList()
+                    }).ToList(),
+
+                Links = new List<HypermediaLinkDto>
+                {
+                    new HypermediaLinkDto
+                    {
+                        Rel = "self",
+                        Href = $"/api/recipes/{r.Id}/details"
+                    },
+                    new HypermediaLinkDto
+                    {
+                        Rel = "recipe",
+                        Href = $"/api/recipes/{r.Id}"
+                    },
+                    new HypermediaLinkDto
+                    {
+                        Rel = "category",
+                        Href = $"/api/categories/{r.CategoryId}"
+                    },
+                    new HypermediaLinkDto
+                    {
+                        Rel = "ingredients",
+                        Href = $"/api/recipes/{r.Id}/ingredients"
+                    }
+                }
             }).FirstOrDefaultAsync();
 
         if (recipe == null)
