@@ -99,6 +99,62 @@ public class AuthController : ControllerBase
         });
     }
 
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(RefreshDto dto)
+    {
+        var refreshToken = await _context.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == dto.RefreshToken);
+
+        if (refreshToken == null)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        if (refreshToken.RevokedAt != null)
+        {
+            return Unauthorized("Refresh token has been revoked");
+        }
+
+        if (refreshToken.ExpiresAt <= DateTime.UtcNow)
+        {
+            return Unauthorized("Refresh token has expired");
+        }
+
+        var user = refreshToken.User;
+
+        if (user == null)
+        {
+            return Unauthorized("User not found");
+        }
+
+        // Revoke old refresh token
+        refreshToken.RevokedAt = DateTime.UtcNow;
+
+        // Generate new tokens
+        var newAccessToken = _jwtService.GenerateAccessToken(user);
+        var newRefreshToken = _jwtService.GenerateRefreshToken();
+
+        var newRefreshTokenEntity = new RefreshToken
+        {
+            Token = newRefreshToken,
+            UserId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenDays"))
+        };
+
+        _context.RefreshTokens.Add(newRefreshTokenEntity);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new AuthResponseDto
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            AccessTokenExpiresAt = _jwtService.GetAccessTokenExpiration()
+        });
+    }
+
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
