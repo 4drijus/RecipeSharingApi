@@ -13,11 +13,15 @@ public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly PasswordService _passwordService;
+    private readonly JwtService _jwtService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(AppDbContext context, PasswordService passwordService)
+    public AuthController(AppDbContext context, PasswordService passwordService, JwtService jwtService, IConfiguration configuration)
     {
         _context = context;
         _passwordService = passwordService;
+        _jwtService = jwtService;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -49,6 +53,47 @@ public class AuthController : ControllerBase
             user.Username,
             user.Email,
             user.Role
+        });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginDto dto)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == dto.Username);
+
+        if (user == null)
+        {
+            return Unauthorized("Invalid username or password");
+        }
+
+        var passwordValid = _passwordService.VerifyPassword(dto.Password, user.PasswordHash);
+
+        if (!passwordValid)
+        {
+            return Unauthorized("Invalid username or password");
+        }
+
+        var accessToken = _jwtService.GenerateAccessToken(user);
+        var refreshToken = _jwtService.GenerateRefreshToken();
+
+        var refreshTokenEntity = new RefreshToken
+        {
+            Token = refreshToken,
+            UserId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(
+                _configuration.GetValue<int>("Jwt:RefreshTokenDays"))
+        };
+
+        _context.RefreshTokens.Add(refreshTokenEntity);
+        await _context.SaveChangesAsync();
+
+        return Ok(new AuthResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAt = _jwtService.GetAccessTokenExpiration()
         });
     }
 }
