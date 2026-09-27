@@ -4,6 +4,8 @@ using RecipeSharingApi.Data;
 using RecipeSharingApi.DTOs;
 using RecipeSharingApi.Models;
 using RecipeSharingApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace RecipeSharingApi.Controllers;
 
@@ -94,6 +96,18 @@ public class AuthController : ControllerBase
             AccessToken = accessToken,
             RefreshToken = refreshToken,
             AccessTokenExpiresAt = _jwtService.GetAccessTokenExpiration()
+        });
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        return Ok(new
+        {
+            Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
+            Username = User.Identity?.Name,
+            Role = User.FindFirstValue(ClaimTypes.Role)
         });
     }
 }
