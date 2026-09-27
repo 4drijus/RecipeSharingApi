@@ -15,4 +15,6 @@ public class AppDbContext : DbContext
     public DbSet<Recipe> Recipes => Set<Recipe>();
 
     public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RecipeSharingApi.Data;
+using RecipeSharingApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(
     connectionString,
     ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddScoped<PasswordService>();
     
 var app = builder.Build();
 
