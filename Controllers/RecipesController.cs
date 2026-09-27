@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipeSharingApi.Data;
@@ -20,20 +21,56 @@ public class RecipesController : ControllerBase
     // GET (api/recipes)
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<RecipeDto>>> GetRecipes()
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IEnumerable<RecipeDto>>> GetRecipes(int page, int pageSize = 10, int? categoryId = null)
     {
-        var recipes = await _context.Recipes.Select(r => new RecipeDto
+        if (page < 1 || pageSize < 1 || pageSize > 100)
         {
-            Id = r.Id,
-            Title = r.Title,
-            Description = r.Description,
-            Instructions = r.Instructions,
-            PreparationTime = r.PreparationTime,
-            CategoryId = r.CategoryId,
-            CreatedAt = r.CreatedAt
-        }).ToListAsync();
+            return BadRequest("Puslapis negali būti mažesnis už 1, o jo dydis nuo 1 iki 100");
+        }
 
-        return Ok(recipes);
+        var query = _context.Recipes.AsQueryable();
+
+        if (categoryId.HasValue)
+        {
+            var categoryExists = await _context.Categories
+                .AnyAsync(c => c.Id == categoryId.Value);
+
+            if (!categoryExists)
+            {
+                return NotFound();
+            }
+
+            query = query.Where(r => r.CategoryId == categoryId.Value);
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var recipes = await query
+            .OrderBy(r => r.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => new RecipeDto
+            {
+                Id = r.Id,
+                Title = r.Title,
+                Description = r.Description,
+                Instructions = r.Instructions,
+                PreparationTime = r.PreparationTime,
+                CategoryId = r.CategoryId,
+                CreatedAt = r.CreatedAt
+            }).ToListAsync();
+
+        var result = new PagedRecipesDto
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+            Items = recipes
+        };
+
+        return Ok(result);
     }
 
     // GET (api/recipes/id)
@@ -162,5 +199,49 @@ public class RecipesController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    [HttpGet("{id}/details")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RecipeDetailsDto>> GetRecipeDetails(int id)
+    {
+        var recipe = await _context.Recipes
+            .Where(r => r.Id == id)
+            .Select(r => new RecipeDetailsDto
+            {
+                Id = r.Id,
+                Title = r.Title,
+                Description = r.Description,
+                Instructions = r.Instructions,
+                PreparationTime = r.PreparationTime,
+                CreatedAt = r.CreatedAt,
+
+                Category = r.Category == null
+                    ? null
+                    : new CategoryDto
+                    {
+                        Id = r.Category.Id,
+                        Name = r.Category.Name,
+                        Description = r.Category.Description
+                    },
+
+                Ingredients = r.Ingredients
+                    .Select(i => new RecipeIngredientDto
+                    {
+                        Id = i.Id,
+                        RecipeId = i.RecipeId,
+                        Name = i.Name,
+                        Quantity = i.Quantity,
+                        Unit = i.Unit
+                    }).ToList()
+            }).FirstOrDefaultAsync();
+
+        if (recipe == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(recipe);
     }
 }
