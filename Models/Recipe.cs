@@ -15,8 +15,12 @@ public class Recipe
     public int CategoryId { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    
+    public int? UserId { get; set; }
 
     public Category? Category { get; set; }
+
+    public User? User { get; set; }
 
     public ICollection<RecipeIngredient> Ingredients { get; set; } = new List<RecipeIngredient>();
 }
