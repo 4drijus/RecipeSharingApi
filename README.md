@@ -1,23 +1,10 @@
 # Recipe Sharing API
 
-REST API sistema maisto receptų dalijimosi puslapiui.
+ASP.NET Core Web API projektas, skirtas receptų dalijimosi sistemai. Projektas įgyvendintas naudojant C#, .NET 9, Entity Framework Core ir MySQL.
 
-## Projekto paskirtis
+Projektas sukurtas atliekant KTU dalyko **„Saityno taikomųjų programų projektavimas“** laboratorinius darbus.
 
-API naudojama receptų, jų kategorijų ir receptų ingredientų valdymui.
-
-Sistema leidžia:
-
-* peržiūrėti receptų kategorijas;
-* kurti, peržiūrėti, redaguoti ir trinti kategorijas;
-* peržiūrėti receptus;
-* kurti, redaguoti ir trinti receptus;
-* filtruoti receptus pagal kategoriją;
-* naudoti receptų puslapiavimą (pagination);
-* peržiūrėti išsamią recepto informaciją kartu su kategorija ir ingredientais;
-* peržiūrėti ir valdyti receptų ingredientus;
-* naudoti hypermedia (HATEOAS) nuorodas;
-* gauti tinkamus HTTP atsakymo kodus pagal užklausos rezultatą.
+---
 
 ## Naudotos technologijos
 
@@ -26,31 +13,289 @@ Sistema leidžia:
 * **ASP.NET Core Web API**
 * **Entity Framework Core**
 * **MySQL**
+* **JWT (JSON Web Token)**
+* **ASP.NET Core Authentication / Authorization**
+* **Microsoft Identity PasswordHasher**
 * **Postman**
 * **OpenAPI**
 * **Git / GitHub**
 
-## Domeno objektai
+---
 
-API naudojami trys pagrindiniai domeno objektai:
+# Lab 1 – REST API
+
+## Projekto paskirtis
+
+API skirta receptų kūrimui, peržiūrai, redagavimui ir trynimui bei receptų susiejimui su kategorijomis ir ingredientais.
+
+API palaiko:
+
+* CRUD operacijas;
+* puslapiavimą;
+* filtravimą pagal kategoriją;
+* hierarchinį recepto informacijos gavimą;
+* HATEOAS nuorodas;
+* duomenų validaciją;
+* tinkamus HTTP atsakymo kodus;
+* OpenAPI dokumentaciją;
+* automatizuotus Postman testus.
+
+---
+
+# Lab 2 – JWT autentifikacija ir autorizacija
+
+Ant Lab 1 pagrindu sukurta autentifikacijos ir autorizacijos sistema naudojant **JWT**.
+
+Įgyvendintos funkcijos:
+
+* vartotojo registracija;
+* vartotojo prisijungimas;
+* slaptažodžių hashavimas;
+* JWT Access Token generavimas;
+* JWT Refresh Token generavimas;
+* Access Token galiojimo laikas – 15 minučių;
+* Refresh Token galiojimo laikas – 7 dienos;
+* Refresh Token rotacija;
+* atsijungimas ir Refresh Token atšaukimas;
+* vartotojo informacijos gavimas iš JWT;
+* autorizacija pagal vartotojo rolę;
+* autorizacija pagal resurso savininką;
+* trys vartotojų rolės: `User`, `Editor`, `Admin`;
+* apsaugoti API endpointai.
+
+## Autentifikacijos procesas
+
+### Registracija
+
+Naujas vartotojas registruojamas:
+
+```http
+POST /api/auth/register
+```
+
+Registracijos metu perduodami:
+
+```json
+{
+  "username": "user",
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+Naujai užregistruotam vartotojui automatiškai priskiriama rolė `User`.
+
+### Prisijungimas
+
+Prisijungimas atliekamas:
+
+```http
+POST /api/auth/login
+```
+
+Sėkmingo prisijungimo metu grąžinami:
+
+* Access Token;
+* Refresh Token;
+* Access Token galiojimo laikas.
+
+Access Token JWT viduje saugoma:
+
+* vartotojo ID;
+* vartotojo vardas;
+* vartotojo rolė.
+
+### Access Token
+
+Access Token naudojamas prieigai prie apsaugotų endpointų.
+
+Užklausoje perduodama:
+
+```text
+Authorization: Bearer <AccessToken>
+```
+
+Access Token galioja 15 minučių.
+
+### Refresh Token
+
+Pasibaigus Access Token galiojimui, naujas Access Token gaunamas naudojant:
+
+```http
+POST /api/auth/refresh
+```
+
+Refresh Token saugomas duomenų bazėje ir turi:
+
+* sukūrimo datą;
+* galiojimo datą;
+* atšaukimo datą;
+* vartotojo ID.
+
+Naudojama **Refresh Token rotacija**. Panaudotas Refresh Token atšaukiamas ir sugeneruojamas naujas Refresh Token.
+
+Refresh Token galioja 7 dienas.
+
+### Atsijungimas
+
+Atsijungimas atliekamas:
+
+```http
+POST /api/auth/logout
+```
+
+Atsijungimo metu Refresh Token pažymimas kaip atšauktas (`RevokedAt`).
+
+Atšauktas Refresh Token nebegali būti naudojamas naujam Access Token gauti.
+
+### Prisijungusio vartotojo informacija
+
+Informacija apie dabartinį vartotoją gaunama:
+
+```http
+GET /api/auth/me
+```
+
+Endpointas grąžina:
+
+* vartotojo ID;
+* vartotojo vardą;
+* vartotojo rolę.
+
+---
+
+## Vartotojų rolės
+
+Sistemoje naudojamos trys rolės:
+
+| Rolė     | Aprašymas                            |
+| -------- | ------------------------------------ |
+| `User`   | Paprastas registruotas vartotojas    |
+| `Editor` | Gali valdyti kitų vartotojų receptus |
+| `Admin`  | Administratoriaus teisės             |
+
+Autorizacijos hierarchija:
+
+| Rolė     | User endpoint | Editor endpoint | Admin endpoint |
+| -------- | ------------: | --------------: | -------------: |
+| `User`   |           200 |             403 |            403 |
+| `Editor` |           200 |             200 |            403 |
+| `Admin`  |           200 |             200 |            200 |
+
+Neprisijungęs vartotojas prie apsaugotų endpointų gauna:
+
+```text
+401 Unauthorized
+```
+
+Prisijungęs vartotojas, neturintis reikiamos rolės, gauna:
+
+```text
+403 Forbidden
+```
+
+---
+
+## Autorizacijos endpointai
+
+### User prieiga
+
+```http
+GET /api/authorization/user
+```
+
+Prieinama rolėms:
+
+* `User`
+* `Editor`
+* `Admin`
+
+### Editor prieiga
+
+```http
+GET /api/authorization/editor
+```
+
+Prieinama rolėms:
+
+* `Editor`
+* `Admin`
+
+### Admin prieiga
+
+```http
+GET /api/authorization/admin
+```
+
+Prieinama tik:
+
+* `Admin`
+
+---
+
+## Ownership-based autorizacija
+
+Receptas turi vartotoją-savininką per `UserId`.
+
+Paprastas `User` gali:
+
+* redaguoti savo receptą;
+* ištrinti savo receptą.
+
+Paprastas `User` negali:
+
+* redaguoti kito vartotojo recepto;
+* ištrinti kito vartotojo recepto.
+
+Tokiu atveju grąžinamas:
+
+```text
+403 Forbidden
+```
+
+`Editor` ir `Admin` gali redaguoti bei trinti kitų vartotojų receptus.
+
+Tai leidžia vienu metu naudoti:
+
+* role-based authorization;
+* ID / ownership-based authorization.
+
+---
+
+# Domeno objektai
+
+API naudojami penki pagrindiniai domeno objektai:
 
 * `Category`
 * `Recipe`
 * `RecipeIngredient`
+* `User`
+* `RefreshToken`
 
 `RecipeIngredient` yra susietas su konkrečiu receptu ir nėra bendras ingredientų katalogas.
 
-### Objektų ryšiai
+`User` saugo registruoto vartotojo informaciją, įskaitant vartotojo vardą, el. paštą, slaptažodžio hash ir rolę.
+
+`RefreshToken` naudojamas vartotojo sesijai pratęsti pasibaigus Access Token galiojimui. Refresh Token saugomas duomenų bazėje kartu su sukūrimo, galiojimo ir atšaukimo informacija.
+
+## Objektų ryšiai
 
 ```text
 Category 1 ─── N Recipe
-
 Recipe 1 ─── N RecipeIngredient
+User 1 ─── N Recipe
+User 1 ─── N RefreshToken
 ```
 
-## Duomenų bazė
+Receptas turi vartotoją-savininką per `UserId`.
 
-Naudojama MySQL duomenų bazė.
+Tai naudojama ownership-based autorizacijai: paprastas `User` gali redaguoti ir trinti tik savo sukurtus receptus.
+
+---
+
+# Duomenų bazė
+
+Naudojama **MySQL** duomenų bazė.
 
 Pagrindinės lentelės:
 
@@ -58,251 +303,556 @@ Pagrindinės lentelės:
 Categories
 Recipes
 RecipeIngredients
+Users
+RefreshTokens
+__EFMigrationsHistory
 ```
 
-Duomenų bazė valdoma naudojant Entity Framework Core migracijas.
-
-## Projekto paleidimas
-
-### 1. Reikalavimai
-
-Kompiuteryje turi būti įdiegta:
-
-* .NET 9 SDK
-* MySQL
-* Git
-
-API testavimui rekomenduojama naudoti Postman.
-
-### 2. Duomenų bazės paruošimas
-
-Projekte naudojama ši prisijungimo eilutė:
+Pagrindiniai ryšiai:
 
 ```text
-server=localhost;port=3306;database=recipe_sharing;user=root;password=
+Categories
+    │
+    └── Recipes
+            │
+            └── RecipeIngredients
+
+Users
+    ├── Recipes
+    └── RefreshTokens
 ```
 
-Paleidus MySQL, duomenų bazę galima sukurti ir atnaujinti naudojant Entity Framework Core migracijas:
+`Recipes.UserId` nurodo vartotoją, kuris sukūrė receptą.
+
+`RefreshTokens.UserId` nurodo vartotoją, kuriam priklauso Refresh Token.
+
+Duomenų bazės struktūra valdoma naudojant Entity Framework Core migracijas.
+
+Migracijos kuriamos ir vykdomos naudojant:
 
 ```bash
+dotnet ef migrations add <MigrationName>
 dotnet ef database update
 ```
 
-### 3. Projekto paleidimas
+---
 
-Projekto kataloge vykdyti:
+# API endpointai
 
-```bash
-dotnet run
+## Authentication
+
+| Method | Endpoint             | Aprašymas                        | Autorizacija |
+| ------ | -------------------- | -------------------------------- | ------------ |
+| POST   | `/api/auth/register` | Registracija                     | Nereikalinga |
+| POST   | `/api/auth/login`    | Prisijungimas                    | Nereikalinga |
+| POST   | `/api/auth/refresh`  | Access Token atnaujinimas        | Nereikalinga |
+| POST   | `/api/auth/logout`   | Atsijungimas                     | Nereikalinga |
+| GET    | `/api/auth/me`       | Dabartinio vartotojo informacija | Reikalinga   |
+
+## Authorization
+
+| Method | Endpoint                    | Reikalinga rolė     |
+| ------ | --------------------------- | ------------------- |
+| GET    | `/api/authorization/user`   | User, Editor, Admin |
+| GET    | `/api/authorization/editor` | Editor, Admin       |
+| GET    | `/api/authorization/admin`  | Admin               |
+
+## Categories
+
+| Method | Endpoint               | Aprašymas                  |
+| ------ | ---------------------- | -------------------------- |
+| GET    | `/api/categories`      | Gauti kategorijas          |
+| GET    | `/api/categories/{id}` | Gauti konkrečią kategoriją |
+| POST   | `/api/categories`      | Sukurti kategoriją         |
+| PUT    | `/api/categories/{id}` | Atnaujinti kategoriją      |
+| DELETE | `/api/categories/{id}` | Ištrinti kategoriją        |
+
+## Recipes
+
+| Method | Endpoint                    | Aprašymas                                    | Autorizacija |
+| ------ | --------------------------- | -------------------------------------------- | ------------ |
+| GET    | `/api/recipes`              | Gauti receptus                               | Nereikalinga |
+| GET    | `/api/recipes/{id}`         | Gauti receptą                                | Nereikalinga |
+| GET    | `/api/recipes/{id}/details` | Gauti receptą su kategorija ir ingredientais | Nereikalinga |
+| POST   | `/api/recipes`              | Sukurti receptą                              | Reikalinga   |
+| PUT    | `/api/recipes/{id}`         | Atnaujinti receptą                           | Reikalinga   |
+| DELETE | `/api/recipes/{id}`         | Ištrinti receptą                             | Reikalinga   |
+
+---
+
+# Receptų puslapiavimas ir filtravimas
+
+Receptų sąrašas palaiko puslapiavimą:
+
+```http
+GET /api/recipes?page=1&pageSize=10
 ```
 
-API paleidžiama adresu:
+Taip pat galima filtruoti pagal kategoriją:
 
-```text
-http://localhost:5000
-```
-
-## OpenAPI
-
-OpenAPI specifikacija pasiekiama adresu:
-
-```text
-http://localhost:5000/openapi/v1.json
-```
-
-OpenAPI specifikacijoje aprašyti visi API metodai, jų parametrų tipai, užklausų duomenys ir galimi HTTP atsakymo kodai.
-
-## API metodai
-
-### Categories
-
-| Method | Endpoint               | Paskirtis                 |
-| ------ | ---------------------- | ------------------------- |
-| GET    | `/api/categories`      | Gauti visas kategorijas   |
-| GET    | `/api/categories/{id}` | Gauti kategoriją pagal ID |
-| POST   | `/api/categories`      | Sukurti kategoriją        |
-| PUT    | `/api/categories/{id}` | Redaguoti kategoriją      |
-| DELETE | `/api/categories/{id}` | Ištrinti kategoriją       |
-
-### Recipes
-
-| Method | Endpoint                    | Paskirtis                                          |
-| ------ | --------------------------- | -------------------------------------------------- |
-| GET    | `/api/recipes`              | Gauti receptus su puslapiavimu ir filtravimu       |
-| GET    | `/api/recipes/{id}`         | Gauti receptą pagal ID                             |
-| POST   | `/api/recipes`              | Sukurti receptą                                    |
-| PUT    | `/api/recipes/{id}`         | Redaguoti receptą                                  |
-| DELETE | `/api/recipes/{id}`         | Ištrinti receptą                                   |
-| GET    | `/api/recipes/{id}/details` | Gauti receptą kartu su kategorija ir ingredientais |
-
-### Recipe Ingredients
-
-| Method | Endpoint                                   | Paskirtis                  |
-| ------ | ------------------------------------------ | -------------------------- |
-| GET    | `/api/recipes/{recipeId}/ingredients`      | Gauti recepto ingredientus |
-| GET    | `/api/recipes/{recipeId}/ingredients/{id}` | Gauti konkretų ingredientą |
-| POST   | `/api/recipes/{recipeId}/ingredients`      | Pridėti ingredientą        |
-| PUT    | `/api/recipes/{recipeId}/ingredients/{id}` | Redaguoti ingredientą      |
-| DELETE | `/api/recipes/{recipeId}/ingredients/{id}` | Ištrinti ingredientą       |
-
-## Receptų filtravimas
-
-Receptus galima filtruoti pagal kategoriją naudojant `categoryId` query parametrą.
-
-Pavyzdys:
-
-```text
-GET /api/recipes?categoryId=1
-```
-
-Filtravimas gali būti naudojamas kartu su puslapiavimu:
-
-```text
-GET /api/recipes?categoryId=1&page=1&pageSize=10
-```
-
-Jeigu nurodyta neegzistuojanti kategorija, API grąžina:
-
-```text
-404 Not Found
-```
-
-## Receptų puslapiavimas
-
-`GET /api/recipes` palaiko puslapiavimą naudojant `page` ir `pageSize` parametrus.
-
-Pavyzdys:
-
-```text
-GET /api/recipes?page=1&pageSize=2
+```http
+GET /api/recipes?page=1&pageSize=10&categoryId=1
 ```
 
 Atsakyme pateikiama:
 
 * dabartinio puslapio numeris;
 * puslapio dydis;
-* bendras rezultatų skaičius;
+* bendras įrašų skaičius;
 * bendras puslapių skaičius;
-* konkretaus puslapio receptai.
+* receptų sąrašas.
 
-Puslapiavimo rezultatas atitinka `PagedRecipesDto` struktūrą.
+`pageSize` reikšmė ribojama nuo 1 iki 100.
 
-`page` turi būti ne mažesnis už 1, o `pageSize` turi būti nuo 1 iki 100. Netinkamų reikšmių atveju grąžinamas `400 Bad Request`.
+---
 
-## Hierarchinis resursas
+# Hierarchinis resursas
 
-API realizuotas hierarchinis metodas, apimantis visus tris domeno objektus:
+Norint gauti išsamią recepto informaciją:
 
-```text
+```http
 GET /api/recipes/{id}/details
 ```
 
-Šis metodas viename atsakyme pateikia:
+Grąžinama:
 
-```text
-Recipe
-├── Category
-└── Ingredients
-    ├── RecipeIngredient
-    ├── RecipeIngredient
-    └── RecipeIngredient
+* recepto informacija;
+* kategorija;
+* ingredientai;
+* HATEOAS nuorodos.
+
+Pavyzdinė struktūra:
+
+```json
+{
+  "id": 1,
+  "title": "Pasta",
+  "description": "Simple pasta recipe",
+  "instructions": "Cook pasta...",
+  "preparationTime": 20,
+  "category": {
+    "id": 1,
+    "name": "Main dishes",
+    "description": "Main dishes"
+  },
+  "ingredients": [],
+  "links": [
+    {
+      "rel": "self",
+      "href": "/api/recipes/1/details"
+    },
+    {
+      "rel": "recipe",
+      "href": "/api/recipes/1"
+    },
+    {
+      "rel": "category",
+      "href": "/api/categories/1"
+    },
+    {
+      "rel": "ingredients",
+      "href": "/api/recipes/1/ingredients"
+    }
+  ]
+}
 ```
 
-Pavyzdys:
+---
+
+# HATEOAS
+
+API pateikia HATEOAS nuorodas hierarchiniame recepto atsakyme.
+
+Naudojami ryšių tipai:
+
+* `self`
+* `recipe`
+* `category`
+* `ingredients`
+
+Tai leidžia klientui pagal gautą resursą rasti susijusius API endpointus.
+
+---
+
+# HTTP atsakymo kodai
+
+API naudoja standartinius HTTP status kodus.
+
+| Kodas              | Reikšmė                                        |
+| ------------------ | ---------------------------------------------- |
+| `200 OK`           | Užklausa įvykdyta sėkmingai                    |
+| `201 Created`      | Resursas sukurtas                              |
+| `204 No Content`   | Operacija įvykdyta be atsakymo turinio         |
+| `400 Bad Request`  | Neteisingi užklausos duomenys                  |
+| `401 Unauthorized` | Vartotojas neprisijungęs arba token netinkamas |
+| `403 Forbidden`    | Vartotojas neturi reikiamų teisių              |
+| `404 Not Found`    | Resursas nerastas                              |
+
+---
+
+# Duomenų validacija
+
+API tikrina:
+
+* ar egzistuoja nurodyta kategorija;
+* ar egzistuoja prašomas receptas;
+* ar `page` nėra mažesnis už 1;
+* ar `pageSize` yra nuo 1 iki 100;
+* ar vartotojo vardas arba el. paštas nėra naudojami kito vartotojo;
+* ar prisijungimo duomenys teisingi;
+* ar Refresh Token egzistuoja;
+* ar Refresh Token nėra atšauktas;
+* ar Refresh Token nėra pasibaigęs;
+* ar JWT turi galiojančią rolę ir vartotojo ID.
+
+---
+
+# Slaptažodžių saugojimas
+
+Vartotojų slaptažodžiai nėra saugomi duomenų bazėje atviru tekstu.
+
+Naudojamas:
 
 ```text
-GET /api/recipes/1/details
+Microsoft.AspNetCore.Identity.PasswordHasher
 ```
 
-Atsakyme pateikiama recepto informacija, jo kategorija ir visi recepto ingredientai.
+Registracijos metu slaptažodis paverčiamas hash reikšme.
 
-## Hypermedia / HATEOAS
+Prisijungimo metu pateiktas slaptažodis tikrinamas naudojant saugomą hash.
 
-`GET /api/recipes/{id}/details` atsakyme pateikiamos hypermedia nuorodos.
+---
+
+# Projekto paleidimas
+
+## 1. Reikalavimai
+
+Prieš paleidžiant projektą turi būti įdiegta:
+
+* .NET 9 SDK;
+* MySQL serveris;
+* XAMPP arba kita MySQL aplinka;
+* Git.
+
+## 2. Projekto gavimas
+
+Projektą galima nuklonuoti:
+
+```bash
+git clone https://github.com/4drijus/RecipeSharingApi.git
+cd RecipeSharingApi
+```
+
+## 3. Priklausomybių atkūrimas
+
+```bash
+dotnet restore
+```
+
+## 4. MySQL
+
+Paleiskite MySQL serverį, pavyzdžiui, per XAMPP.
+
+Duomenų bazės prisijungimo informacija konfigūruojama `appsettings.json` faile naudojant `ConnectionStrings:DefaultConnection`.
 
 Pavyzdys:
 
 ```json
-"links": [
-  {
-    "rel": "self",
-    "href": "/api/recipes/1/details"
-  },
-  {
-    "rel": "recipe",
-    "href": "/api/recipes/1"
-  },
-  {
-    "rel": "category",
-    "href": "/api/categories/1"
-  },
-  {
-    "rel": "ingredients",
-    "href": "/api/recipes/1/ingredients"
-  }
-]
+"ConnectionStrings": {
+  "DefaultConnection": "server=localhost;port=3306;database=recipe_sharing;user=root;password="
+}
 ```
 
-Nuorodos leidžia API klientui iš gauto resurso sužinoti susijusių resursų adresus.
+## 5. Duomenų bazės migracijos
 
-## HTTP atsakymo kodai
+Atnaujinkite duomenų bazę:
 
-API naudoja standartinius HTTP status kodus:
+```bash
+dotnet ef database update
+```
 
-| Kodas             | Reikšmė                                          |
-| ----------------- | ------------------------------------------------ |
-| `200 OK`          | Užklausa įvykdyta sėkmingai                      |
-| `201 Created`     | Sėkmingai sukurtas naujas resursas               |
-| `204 No Content`  | Resursas sėkmingai ištrintas, atsakymo kūno nėra |
-| `400 Bad Request` | Neteisingi užklausos duomenys                    |
-| `404 Not Found`   | Nurodytas resursas nerastas                      |
+## 6. JWT konfigūracija
 
-## Duomenų validacija
+JWT slaptasis raktas nėra laikomas `appsettings.json`.
 
-API tikrina gaunamų duomenų tinkamumą naudojant `DataAnnotations` bei papildomą verslo logikos validaciją.
+Naudojami .NET User Secrets.
 
-Pavyzdžiai:
+Pirmą kartą:
 
-* kategorijos pavadinimas yra privalomas;
-* recepto pavadinimas ir instrukcijos yra privalomi;
-* recepto paruošimo laikas turi būti nuo 1 iki 1440 minučių;
-* receptas turi priklausyti egzistuojančiai kategorijai;
-* ingrediento pavadinimas ir matavimo vienetas yra privalomi;
-* ingrediento kiekis turi būti teigiamas;
-* ingredientas gali būti pridedamas tik egzistuojančiam receptui.
+```bash
+dotnet user-secrets init
+```
 
-Netinkamų duomenų atveju API grąžina `400 Bad Request`.
+JWT raktas nustatomas:
 
-## Postman testavimas
+```bash
+dotnet user-secrets set "Jwt:Key" "YOUR_SECRET_KEY"
+```
 
-API testavimui naudojama Postman kolekcija:
+`YOUR_SECRET_KEY` turi būti pakeistas savo saugiu slaptuoju raktu.
+
+Kiti JWT nustatymai saugomi `appsettings.json`:
+
+```json
+"Jwt": {
+  "Issuer": "RecipeSharingApi",
+  "Audience": "RecipeSharingApi",
+  "AccessTokenMinutes": 15,
+  "RefreshTokenDays": 7
+}
+```
+
+## 7. Projekto paleidimas
+
+```bash
+dotnet run
+```
+
+API adresas priklauso nuo paleidimo metu konsolėje nurodyto URL.
+
+Pavyzdžiui:
 
 ```text
-Recipe Sharing API
-├── Categories
-├── Recipes
-├── Recipe Ingredients
-└── Error Tests
+http://localhost:5000
 ```
 
-Kolekcijoje tikrinami:
+OpenAPI dokumentacija:
 
-* pagrindiniai CRUD API metodai;
-* receptų filtravimas;
-* receptų puslapiavimas;
-* hierarchinis recepto informacijos gavimas;
-* HATEOAS nuorodos;
-* `404 Not Found` klaidos;
-* `400 Bad Request` klaidos;
-* HTTP atsakymo statusai;
-* atsakymo struktūra ir turinys.
+```text
+http://localhost:5000/openapi/v1.json
+```
 
-Kolekcijos Runner naudojamas automatiniam visų testų vykdymui.
+---
 
-Paskutinio testavimo metu visi kolekcijoje esantys testai praėjo sėkmingai.
+# Darbas su autentifikacija
 
-## Projekto versijų kontrolė
+Pagrindinė naudojimo seka:
 
-Projektas saugomas Git repozitorijoje GitHub platformoje.
+```text
+Register
+   ↓
+Login
+   ↓
+Access Token + Refresh Token
+   ↓
+API užklausos su Bearer Access Token
+   ↓
+Access Token pasibaigia
+   ↓
+Refresh Token
+   ↓
+Naujas Access Token + naujas Refresh Token
+   ↓
+Logout
+   ↓
+Refresh Token atšaukiamas
+```
 
-Git naudojamas projekto kodo ir pakeitimų versijoms valdyti.
+Apsaugotoms užklausoms naudojama:
+
+```text
+Authorization: Bearer <AccessToken>
+```
+
+---
+
+# Postman testai
+
+Projekto API testavimui naudojamas **Postman**.
+
+Testai suskirstyti į grupes:
+
+```text
+01 - Registration
+02 - Authentication
+03 - User
+04 - Token
+05 - Authorization
+06 - Ownership
+07 - Negative Tests
+```
+
+## Registration
+
+Tikrinama:
+
+* sėkminga registracija;
+* vartotojo sukūrimas;
+* numatytosios `User` rolės priskyrimas;
+* registracija su jau egzistuojančiu vartotojo vardu arba el. paštu.
+
+## Authentication
+
+Tikrinama:
+
+* User prisijungimas;
+* Editor prisijungimas;
+* Admin prisijungimas;
+* Access Token gavimas;
+* Refresh Token gavimas;
+* neteisingas slaptažodis;
+* neegzistuojantis vartotojas.
+
+## User
+
+Tikrinama:
+
+* `GET /api/auth/me`;
+* vartotojo ID gavimas;
+* vartotojo vardo gavimas;
+* vartotojo rolės gavimas.
+
+## Token
+
+Tikrinama:
+
+* Refresh Token panaudojimas;
+* naujo Access Token gavimas;
+* naujo Refresh Token gavimas;
+* seno Refresh Token atšaukimas;
+* atšaukto Refresh Token panaudojimas;
+* Logout.
+
+## Authorization
+
+Tikrinama:
+
+* User prieiga;
+* Editor prieiga;
+* Admin prieiga;
+* `401 Unauthorized`;
+* `403 Forbidden`;
+* skirtingų rolių prieigos teisės.
+
+## Ownership
+
+Tikrinama:
+
+* vartotojo recepto sukūrimas;
+* vartotojo savo recepto redagavimas;
+* bandymas redaguoti kito vartotojo receptą;
+* Editor recepto redagavimas;
+* Admin recepto redagavimas;
+* savo recepto trynimas;
+* kito vartotojo recepto trynimas;
+* Editor recepto trynimas;
+* Admin recepto trynimas.
+
+## Negative Tests
+
+Tikrinamos neleistinos arba klaidingos užklausos:
+
+* neprisijungusio vartotojo prieiga;
+* neteisingas Access Token;
+* neteisingas Refresh Token;
+* atšauktas Refresh Token;
+* neteisingas vartotojo vaidmuo;
+* prieiga prie neegzistuojančio resurso;
+* neteisingi užklausos parametrai.
+
+Visi Lab 2 Postman testai buvo sėkmingai įvykdyti.
+
+---
+
+# OpenAPI
+
+API turi OpenAPI dokumentaciją.
+
+Paleidus projektą, OpenAPI dokumentą galima pasiekti:
+
+```text
+http://localhost:5000/openapi/v1.json
+```
+
+---
+
+# Git ir versijų kontrolė
+
+Projektas saugomas Git repozitorijoje:
+
+```text
+https://github.com/4drijus/RecipeSharingApi
+```
+
+Naudojamos Git komandos:
+
+```bash
+git status
+git add .
+git commit -m "..."
+git push
+```
+
+JWT slaptasis raktas nėra laikomas Git repozitorijoje ir konfigūruojamas naudojant .NET User Secrets.
+
+---
+
+# Projekto struktūra
+
+Pagrindinė projekto struktūra:
+
+```text
+RecipeSharingApi
+│
+├── Controllers
+│   ├── AuthController.cs
+│   ├── AuthorizationController.cs
+│   ├── CategoriesController.cs
+│   └── RecipesController.cs
+│
+├── Data
+│   └── AppDbContext.cs
+│
+├── DTOs
+│   ├── AuthResponseDto.cs
+│   ├── LoginDto.cs
+│   ├── RefreshDto.cs
+│   ├── RegisterDto.cs
+│   ├── RecipeDto.cs
+│   ├── RecipeDetailsDto.cs
+│   └── ...
+│
+├── Models
+│   ├── Category.cs
+│   ├── Recipe.cs
+│   ├── RecipeIngredient.cs
+│   ├── User.cs
+│   └── RefreshToken.cs
+│
+├── Services
+│   ├── JwtService.cs
+│   └── PasswordService.cs
+│
+├── Migrations
+│
+├── appsettings.json
+├── Program.cs
+└── README.md
+```
+
+---
+
+# Santrauka
+
+Projekte įgyvendinta REST tipo receptų dalijimosi API su:
+
+* CRUD operacijomis;
+* puslapiavimu;
+* filtravimu;
+* hierarchiniais resursais;
+* HATEOAS;
+* MySQL duomenų baze;
+* Entity Framework Core;
+* vartotojų registracija ir prisijungimu;
+* slaptažodžių hashavimu;
+* JWT Access Token;
+* Refresh Token;
+* Refresh Token rotacija;
+* Logout ir tokenų atšaukimu;
+* trimis vartotojų rolėmis;
+* role-based authorization;
+* ownership-based authorization;
+* apsaugotais API endpointais;
+* OpenAPI dokumentacija;
+* automatizuotais Postman testais;
+* Git/GitHub versijų kontrole.
