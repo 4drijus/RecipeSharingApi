@@ -155,6 +155,27 @@ public class AuthController : ControllerBase
         });
     }
 
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(RefreshDto dto)
+    {
+        var refreshToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.Token == dto.RefreshToken);
+
+        if (refreshToken == null)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        if (refreshToken.RevokedAt != null)
+        {
+            return Unauthorized("Refresh token has already been revoked");
+        }
+
+        refreshToken.RevokedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
