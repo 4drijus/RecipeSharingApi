@@ -182,8 +182,8 @@ public class RecipesController : ControllerBase
             return Unauthorized();
         }
 
-        // Admin ir Editor gali redaguoti visus receptus, o user tik savo
-        if (!User.IsInRole("Admin") && !User.IsInRole("Editor") && recipe.UserId != userId)
+        // Admin gali redaguoti visus receptus, o user tik savo
+        if (!User.IsInRole("Admin") && recipe.UserId != userId)
         {
             return Forbid();
         }
@@ -232,8 +232,8 @@ public class RecipesController : ControllerBase
             return Unauthorized();
         }
 
-        // Admin ir Editor gali trinti visus receptus, o user tik savo
-        if (!User.IsInRole("Admin") && !User.IsInRole("Editor") && recipe.UserId != userId)
+        // Admin gali trinti visus receptus, o user tik savo
+        if (!User.IsInRole("Admin") && recipe.UserId != userId)
         {
             return Forbid();
         }

@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using RecipeSharingApi.Models;
 using RecipeSharingApi.DTOs;
 using RecipeSharingApi.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace RecipeSharingApi.Controllers;
 
@@ -69,16 +72,31 @@ public class RecipeIngredientsController : ControllerBase
 
     // POST
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RecipeIngredientDto>> CreateIngredient (int recipeId, RecipeIngredientDto ingredientDto)
     {
-        var recipeExists = await _context.Recipes.AnyAsync(r => r.Id == recipeId);
+        var recipe = await _context.Recipes.FindAsync(recipeId);
 
-        if (!recipeExists)
+        if (recipe == null)
         {
             return NotFound();
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (!User.IsInRole("Admin") && recipe.UserId != userId)
+        {
+            return Forbid();
         }
 
         var ingredient = new RecipeIngredient
@@ -110,8 +128,11 @@ public class RecipeIngredientsController : ControllerBase
 
     // PUT
     [HttpPut("{id}")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateIngredient( int recipeId, int id, RecipeIngredientDto ingredientDto)
     {
@@ -120,6 +141,27 @@ public class RecipeIngredientsController : ControllerBase
         if (ingredient == null)
         {
             return NotFound();
+        }
+
+        var recipe = await _context.Recipes.FindAsync(recipeId);
+
+        if (recipe == null)
+        {
+            return NotFound();
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+
+        // Admin gali valdyti visų receptų ingredientus, o User tik savo
+        if (!User.IsInRole("Admin") && recipe.UserId != userId)
+        {
+            return Forbid();
         }
 
         ingredient.Name = ingredientDto.Name;
@@ -140,7 +182,10 @@ public class RecipeIngredientsController : ControllerBase
 
     // DELETE
     [HttpDelete("{id}")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteIngredient(int recipeId, int id)
     {
@@ -149,6 +194,25 @@ public class RecipeIngredientsController : ControllerBase
         if (ingredient == null)
         {
             return NotFound();
+        }
+
+        var recipe = await _context.Recipes.FindAsync(recipeId);
+
+        if (recipe == null)
+        {
+            return NotFound();
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (!User.IsInRole("Admin") && recipe.UserId != userId)
+        {
+            return Forbid();
         }
 
         _context.RecipeIngredients.Remove(ingredient);

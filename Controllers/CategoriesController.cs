@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RecipeSharingApi.Data;
 using RecipeSharingApi.DTOs;
 using RecipeSharingApi.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RecipeSharingApi.Controllers;
 
@@ -57,8 +58,11 @@ public class CategoriesController : ControllerBase
 
     // POST
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<CategoryDto>> CreateCategory(CategoryDto categoryDto)
     {
         var category = new Category
@@ -83,8 +87,11 @@ public class CategoriesController : ControllerBase
 
     // PUT
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCategory (int id, CategoryDto categoryDto)
     {
@@ -111,7 +118,10 @@ public class CategoriesController : ControllerBase
 
     // DELETE
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCategory (int id)
     {

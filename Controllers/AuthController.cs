@@ -155,6 +155,7 @@ public class AuthController : ControllerBase
         });
     }
 
+    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(RefreshDto dto)
     {
@@ -169,6 +170,18 @@ public class AuthController : ControllerBase
         if (refreshToken.RevokedAt != null)
         {
             return Unauthorized("Refresh token has already been revoked");
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized("Invalid user identity");
+        }
+
+        if (refreshToken.UserId != userId)
+        {
+            return Forbid();
         }
 
         refreshToken.RevokedAt = DateTime.UtcNow;

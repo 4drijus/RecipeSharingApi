@@ -60,8 +60,12 @@ Ant Lab 1 pagrindu sukurta autentifikacijos ir autorizacijos sistema naudojant *
 * vartotojo informacijos gavimas iš JWT;
 * autorizacija pagal vartotojo rolę;
 * autorizacija pagal resurso savininką;
-* trys vartotojų rolės: `User`, `Editor`, `Admin`;
+* dvi autentifikuotų vartotojų rolės: `User` ir `Admin`;
 * apsaugoti API endpointai.
+
+Sistemoje taip pat yra neprisijungęs naudotojas (**Guest**). Guest nėra duomenų bazėje saugoma rolė ir nėra JWT `Role` claim. Tai naudotojas, kuris nėra autentifikuotas.
+
+---
 
 ## Autentifikacijos procesas
 
@@ -84,6 +88,8 @@ Registracijos metu perduodami:
 ```
 
 Naujai užregistruotam vartotojui automatiškai priskiriama rolė `User`.
+
+Vartotojas registracijos metu negali pasirinkti `Admin` rolės.
 
 ### Prisijungimas
 
@@ -164,25 +170,44 @@ Endpointas grąžina:
 
 ---
 
-## Vartotojų rolės
+# Vartotojų tipai ir rolės
 
-Sistemoje naudojamos trys rolės:
+Sistemoje yra trys naudotojų tipai:
 
-| Rolė     | Aprašymas                            |
-| -------- | ------------------------------------ |
-| `User`   | Paprastas registruotas vartotojas    |
-| `Editor` | Gali valdyti kitų vartotojų receptus |
-| `Admin`  | Administratoriaus teisės             |
+| Tipas   | JWT rolė | Aprašymas                |
+| ------- | -------- | ------------------------ |
+| `Guest` | –        | Neprisijungęs naudotojas |
+| `User`  | `User`   | Registruotas naudotojas  |
+| `Admin` | `Admin`  | Administratorius         |
 
-Autorizacijos hierarchija:
+`Guest` nėra duomenų bazėje saugoma rolė. Jis neturi JWT tokeno ir gali naudotis tik viešais endpointais.
 
-| Rolė     | User endpoint | Editor endpoint | Admin endpoint |
-| -------- | ------------: | --------------: | -------------: |
-| `User`   |           200 |             403 |            403 |
-| `Editor` |           200 |             200 |            403 |
-| `Admin`  |           200 |             200 |            200 |
+## Teisių matrica
 
-Neprisijungęs vartotojas prie apsaugotų endpointų gauna:
+| Funkcija                                    | Guest | User | Admin |
+| ------------------------------------------- | ----: | ---: | ----: |
+| Pagrindinis puslapis / vieša API prieiga    |     ✅ |    ✅ |     ✅ |
+| Peržiūrėti kategorijas                      |     ✅ |    ✅ |     ✅ |
+| Peržiūrėti receptus                         |     ✅ |    ✅ |     ✅ |
+| Filtruoti receptus                          |     ✅ |    ✅ |     ✅ |
+| Peržiūrėti recepto detales                  |     ✅ |    ✅ |     ✅ |
+| Registracija                                |     ✅ |    – |     – |
+| Prisijungimas                               |     ✅ |    – |     – |
+| Atsijungimas                                |     ❌ |    ✅ |     ✅ |
+| Kurti receptą                               |     ❌ |    ✅ |     ✅ |
+| Redaguoti savo receptą                      |     ❌ |    ✅ |     ✅ |
+| Trinti savo receptą                         |     ❌ |    ✅ |     ✅ |
+| Redaguoti kito naudotojo receptą            |     ❌ |    ❌ |     ✅ |
+| Trinti kito naudotojo receptą               |     ❌ |    ❌ |     ✅ |
+| Valdyti savo recepto ingredientus           |     ❌ |    ✅ |     ✅ |
+| Valdyti kito naudotojo recepto ingredientus |     ❌ |    ❌ |     ✅ |
+| Kurti kategoriją                            |     ❌ |    ❌ |     ✅ |
+| Redaguoti kategoriją                        |     ❌ |    ❌ |     ✅ |
+| Trinti kategoriją                           |     ❌ |    ❌ |     ✅ |
+| Peržiūrėti naudotojus                       |     ❌ |    ❌ |     ✅ |
+| Valdyti naudotojų paskyras                  |     ❌ |    ❌ |     ✅ |
+
+Neprisijungęs vartotojas prie apsaugoto endpointo gauna:
 
 ```text
 401 Unauthorized
@@ -196,9 +221,9 @@ Prisijungęs vartotojas, neturintis reikiamos rolės, gauna:
 
 ---
 
-## Autorizacijos endpointai
+# Autorizacijos endpointai
 
-### User prieiga
+## User prieiga
 
 ```http
 GET /api/authorization/user
@@ -207,21 +232,9 @@ GET /api/authorization/user
 Prieinama rolėms:
 
 * `User`
-* `Editor`
 * `Admin`
 
-### Editor prieiga
-
-```http
-GET /api/authorization/editor
-```
-
-Prieinama rolėms:
-
-* `Editor`
-* `Admin`
-
-### Admin prieiga
+## Admin prieiga
 
 ```http
 GET /api/authorization/admin
@@ -231,21 +244,27 @@ Prieinama tik:
 
 * `Admin`
 
+Šie endpointai naudojami role-based authorization veikimui patikrinti.
+
 ---
 
-## Ownership-based autorizacija
+# Ownership-based autorizacija
 
 Receptas turi vartotoją-savininką per `UserId`.
 
 Paprastas `User` gali:
 
 * redaguoti savo receptą;
-* ištrinti savo receptą.
+* ištrinti savo receptą;
+* pridėti ingredientus prie savo recepto;
+* redaguoti savo recepto ingredientus;
+* ištrinti savo recepto ingredientus.
 
 Paprastas `User` negali:
 
 * redaguoti kito vartotojo recepto;
-* ištrinti kito vartotojo recepto.
+* ištrinti kito vartotojo recepto;
+* valdyti kito vartotojo recepto ingredientų.
 
 Tokiu atveju grąžinamas:
 
@@ -253,7 +272,11 @@ Tokiu atveju grąžinamas:
 403 Forbidden
 ```
 
-`Editor` ir `Admin` gali redaguoti bei trinti kitų vartotojų receptus.
+`Admin` gali:
+
+* redaguoti bet kurio vartotojo receptą;
+* ištrinti bet kurio vartotojo receptą;
+* valdyti bet kurio recepto ingredientus.
 
 Tai leidžia vienu metu naudoti:
 
@@ -282,8 +305,11 @@ API naudojami penki pagrindiniai domeno objektai:
 
 ```text
 Category 1 ─── N Recipe
+
 Recipe 1 ─── N RecipeIngredient
+
 User 1 ─── N Recipe
+
 User 1 ─── N RefreshToken
 ```
 
@@ -351,21 +377,30 @@ dotnet ef database update
 
 ## Authorization
 
-| Method | Endpoint                    | Reikalinga rolė     |
-| ------ | --------------------------- | ------------------- |
-| GET    | `/api/authorization/user`   | User, Editor, Admin |
-| GET    | `/api/authorization/editor` | Editor, Admin       |
-| GET    | `/api/authorization/admin`  | Admin               |
+| Method | Endpoint                   | Reikalinga rolė |
+| ------ | -------------------------- | --------------- |
+| GET    | `/api/authorization/user`  | `User`, `Admin` |
+| GET    | `/api/authorization/admin` | `Admin`         |
+
+## Users
+
+| Method | Endpoint          | Aprašymas                | Autorizacija |
+| ------ | ----------------- | ------------------------ | ------------ |
+| GET    | `/api/users`      | Gauti naudotojų sąrašą   | `Admin`      |
+| GET    | `/api/users/{id}` | Gauti konkretų naudotoją | `Admin`      |
+| DELETE | `/api/users/{id}` | Ištrinti naudotoją       | `Admin`      |
+
+Slaptažodžio hash naudotojų endpointuose negrąžinamas.
 
 ## Categories
 
-| Method | Endpoint               | Aprašymas                  |
-| ------ | ---------------------- | -------------------------- |
-| GET    | `/api/categories`      | Gauti kategorijas          |
-| GET    | `/api/categories/{id}` | Gauti konkrečią kategoriją |
-| POST   | `/api/categories`      | Sukurti kategoriją         |
-| PUT    | `/api/categories/{id}` | Atnaujinti kategoriją      |
-| DELETE | `/api/categories/{id}` | Ištrinti kategoriją        |
+| Method | Endpoint               | Aprašymas                  | Autorizacija |
+| ------ | ---------------------- | -------------------------- | ------------ |
+| GET    | `/api/categories`      | Gauti kategorijas          | Nereikalinga |
+| GET    | `/api/categories/{id}` | Gauti konkrečią kategoriją | Nereikalinga |
+| POST   | `/api/categories`      | Sukurti kategoriją         | `Admin`      |
+| PUT    | `/api/categories/{id}` | Atnaujinti kategoriją      | `Admin`      |
+| DELETE | `/api/categories/{id}` | Ištrinti kategoriją        | `Admin`      |
 
 ## Recipes
 
@@ -377,6 +412,18 @@ dotnet ef database update
 | POST   | `/api/recipes`              | Sukurti receptą                              | Reikalinga   |
 | PUT    | `/api/recipes/{id}`         | Atnaujinti receptą                           | Reikalinga   |
 | DELETE | `/api/recipes/{id}`         | Ištrinti receptą                             | Reikalinga   |
+
+## Recipe ingredients
+
+| Method | Endpoint                                   | Aprašymas                  | Autorizacija |
+| ------ | ------------------------------------------ | -------------------------- | ------------ |
+| GET    | `/api/recipes/{recipeId}/ingredients`      | Gauti recepto ingredientus | Nereikalinga |
+| GET    | `/api/recipes/{recipeId}/ingredients/{id}` | Gauti konkretų ingredientą | Nereikalinga |
+| POST   | `/api/recipes/{recipeId}/ingredients`      | Pridėti ingredientą        | Reikalinga   |
+| PUT    | `/api/recipes/{recipeId}/ingredients/{id}` | Atnaujinti ingredientą     | Reikalinga   |
+| DELETE | `/api/recipes/{recipeId}/ingredients/{id}` | Ištrinti ingredientą       | Reikalinga   |
+
+Ingredientų POST, PUT ir DELETE operacijose `User` gali valdyti tik savo receptų ingredientus, o `Admin` gali valdyti bet kurio recepto ingredientus.
 
 ---
 
@@ -496,6 +543,7 @@ API tikrina:
 
 * ar egzistuoja nurodyta kategorija;
 * ar egzistuoja prašomas receptas;
+* ar egzistuoja prašomas ingredientas;
 * ar `page` nėra mažesnis už 1;
 * ar `pageSize` yra nuo 1 iki 100;
 * ar vartotojo vardas arba el. paštas nėra naudojami kito vartotojo;
@@ -503,7 +551,8 @@ API tikrina:
 * ar Refresh Token egzistuoja;
 * ar Refresh Token nėra atšauktas;
 * ar Refresh Token nėra pasibaigęs;
-* ar JWT turi galiojančią rolę ir vartotojo ID.
+* ar JWT turi galiojantį vartotojo ID ir rolę;
+* ar naudotojas turi teisę valdyti konkretų resursą.
 
 ---
 
@@ -664,11 +713,17 @@ Testai suskirstyti į grupes:
 
 ```text
 01 - Registration
+
 02 - Authentication
+
 03 - User
+
 04 - Token
+
 05 - Authorization
+
 06 - Ownership
+
 07 - Negative Tests
 ```
 
@@ -686,7 +741,6 @@ Tikrinama:
 Tikrinama:
 
 * User prisijungimas;
-* Editor prisijungimas;
 * Admin prisijungimas;
 * Access Token gavimas;
 * Refresh Token gavimas;
@@ -718,8 +772,8 @@ Tikrinama:
 Tikrinama:
 
 * User prieiga;
-* Editor prieiga;
 * Admin prieiga;
+* User prieiga prie Admin endpointo;
 * `401 Unauthorized`;
 * `403 Forbidden`;
 * skirtingų rolių prieigos teisės.
@@ -728,15 +782,26 @@ Tikrinama:
 
 Tikrinama:
 
-* vartotojo recepto sukūrimas;
-* vartotojo savo recepto redagavimas;
-* bandymas redaguoti kito vartotojo receptą;
-* Editor recepto redagavimas;
-* Admin recepto redagavimas;
-* savo recepto trynimas;
-* kito vartotojo recepto trynimas;
-* Editor recepto trynimas;
-* Admin recepto trynimas.
+* User recepto sukūrimas;
+* User savo recepto redagavimas;
+* User bandymas redaguoti kito vartotojo receptą;
+* Admin kito vartotojo recepto redagavimas;
+* User savo recepto trynimas;
+* User bandymas trinti kito vartotojo receptą;
+* Admin kito vartotojo recepto trynimas;
+* User savo recepto ingredientų valdymas;
+* User bandymas valdyti kito vartotojo recepto ingredientus;
+* Admin kito vartotojo recepto ingredientų valdymas.
+
+## Users
+
+Tikrinama:
+
+* Admin gali gauti naudotojų sąrašą;
+* Admin gali gauti konkretų naudotoją;
+* Admin gali ištrinti naudotoją;
+* User negali pasiekti naudotojų administravimo endpointų;
+* neprisijungęs vartotojas negali pasiekti naudotojų administravimo endpointų.
 
 ## Negative Tests
 
@@ -746,11 +811,13 @@ Tikrinamos neleistinos arba klaidingos užklausos:
 * neteisingas Access Token;
 * neteisingas Refresh Token;
 * atšauktas Refresh Token;
-* neteisingas vartotojo vaidmuo;
+* neteisinga vartotojo rolė;
 * prieiga prie neegzistuojančio resurso;
+* bandymas keisti kito vartotojo receptą;
+* bandymas keisti kito vartotojo recepto ingredientus;
+* User bandymas valdyti kategorijas;
+* User bandymas valdyti naudotojų paskyras;
 * neteisingi užklausos parametrai.
-
-Visi Lab 2 Postman testai buvo sėkmingai įvykdyti.
 
 ---
 
@@ -778,8 +845,11 @@ Naudojamos Git komandos:
 
 ```bash
 git status
+
 git add .
+
 git commit -m "..."
+
 git push
 ```
 
@@ -798,7 +868,9 @@ RecipeSharingApi
 │   ├── AuthController.cs
 │   ├── AuthorizationController.cs
 │   ├── CategoriesController.cs
-│   └── RecipesController.cs
+│   ├── RecipeIngredientsController.cs
+│   ├── RecipesController.cs
+│   └── UsersController.cs
 │
 ├── Data
 │   └── AppDbContext.cs
@@ -849,10 +921,12 @@ Projekte įgyvendinta REST tipo receptų dalijimosi API su:
 * Refresh Token;
 * Refresh Token rotacija;
 * Logout ir tokenų atšaukimu;
-* trimis vartotojų rolėmis;
+* `User` ir `Admin` rolėmis;
+* Guest prieigos lygiu;
 * role-based authorization;
 * ownership-based authorization;
 * apsaugotais API endpointais;
+* naudotojų administravimo endpointais;
 * OpenAPI dokumentacija;
 * automatizuotais Postman testais;
 * Git/GitHub versijų kontrole.
