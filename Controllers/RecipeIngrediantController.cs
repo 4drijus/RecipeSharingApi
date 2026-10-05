@@ -5,7 +5,6 @@ using RecipeSharingApi.DTOs;
 using RecipeSharingApi.Data;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace RecipeSharingApi.Controllers;
 

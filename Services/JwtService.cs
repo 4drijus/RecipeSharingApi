@@ -18,7 +18,7 @@ public class JwtService
 
     public string GenerateAccessToken(User user)
     {
-        var key = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("KWT key is not configured");
+        var key = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is not configured");
 
         var issuer = _configuration["Jwt:Issuer"];
         var audience = _configuration["Jwt:Audience"];

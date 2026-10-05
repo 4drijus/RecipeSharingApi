@@ -8,17 +8,10 @@ namespace RecipeSharingApi.Controllers;
 public class AuthorizationController : ControllerBase
 {
     [HttpGet("user")]
-    [Authorize(Roles = "Admin,Editor,User")]
+    [Authorize(Roles = "User,Admin")]
     public IActionResult UserAccess()
     {
         return Ok("User role access granted");
-    }
-
-    [HttpGet("editor")]
-    [Authorize(Roles = "Admin,Editor")]
-    public IActionResult EditorAccess()
-    {
-        return Ok("Editor role access granted");
     }
 
     [HttpGet("admin")]
