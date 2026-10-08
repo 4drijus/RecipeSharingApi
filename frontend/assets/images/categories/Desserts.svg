@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title">
+  <title id="title">Deserto iliustracija</title>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fbe5e1"/><stop offset="1" stop-color="#e9bfd0"/></linearGradient>
+  </defs>
+  <rect width="640" height="400" rx="26" fill="url(#bg)"/>
+  <ellipse cx="320" cy="292" rx="168" ry="33" fill="#fffaf4"/>
+  <path d="M203 274 252 131l144 143Z" fill="#d99568"/>
+  <path d="m218 231 27-79 113 113Z" fill="#f3d9a7"/>
+  <path d="m252 131 27-31c24-27 62-18 72 7 24-9 48 6 47 31 23 17 14 48-9 55Z" fill="#fff7ef"/>
+  <circle cx="321" cy="114" r="18" fill="#bf5574"/>
+  <path d="M321 94c-13-22-31-16-28-4 2 9 17 10 28 4Zm0 0c15-20 33-12 28-1-4 9-19 8-28 1Z" fill="#73915b"/>
+  <circle cx="247" cy="213" r="8" fill="#c45e6c"/><circle cx="278" cy="240" r="7" fill="#c45e6c"/>
+</svg>

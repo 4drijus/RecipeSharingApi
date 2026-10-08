@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title">
+  <title id="title">Laikina recepto iliustracija</title>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1">
+      <stop stop-color="#fff1dc"/>
+      <stop offset="1" stop-color="#f5c8a2"/>
+    </linearGradient>
+    <linearGradient id="plate" x2="0" y2="1">
+      <stop stop-color="#fff"/>
+      <stop offset="1" stop-color="#e8e5db"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" rx="26" fill="url(#bg)"/>
+  <circle cx="320" cy="205" r="145" fill="#d99868" opacity=".22"/>
+  <circle cx="320" cy="194" r="132" fill="url(#plate)"/>
+  <circle cx="320" cy="194" r="106" fill="#f9f6eb" stroke="#d8cfc0" stroke-width="4"/>
+  <path d="M253 211c12-48 52-76 100-65 38 9 61 42 50 78-12 40-64 61-112 43-30-11-46-31-38-56Z" fill="#eaa84f"/>
+  <path d="M278 203c15-31 42-47 73-40 25 6 42 26 38 49-6 31-42 47-77 37-27-8-43-25-34-46Z" fill="#fff2c5"/>
+  <circle cx="288" cy="149" r="11" fill="#729354"/>
+  <circle cx="378" cy="242" r="9" fill="#bc6247"/>
+  <path d="M260 245c18-13 30-16 43-13m65-88c17 1 27 7 37 18" fill="none" stroke="#729354" stroke-linecap="round" stroke-width="9"/>
+  <path d="M109 135h27v130h-27zm394-1h27v132h-27z" rx="13" fill="#b8754c"/>
+  <path d="M100 125h45v17h-45zm386 0h45v17h-45zm0 133h45v17h-45z" fill="#d99a6e"/>
+  <circle cx="143" cy="94" r="12" fill="#e6a94d"/>
+  <circle cx="494" cy="306" r="15" fill="#78935c"/>
+  <circle cx="176" cy="305" r="9" fill="#bd684f"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title">
+  <title id="title">Pusryčių iliustracija</title>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fff2d1"/><stop offset="1" stop-color="#f6c77e"/></linearGradient>
+  </defs>
+  <rect width="640" height="400" rx="26" fill="url(#bg)"/>
+  <circle cx="318" cy="210" r="142" fill="#fffaf0"/>
+  <circle cx="318" cy="210" r="112" fill="#f4dfb2"/>
+  <path d="M244 202c5-37 35-61 72-53 27 6 42 27 36 51-7 27-39 45-72 38-25-5-40-17-36-36Z" fill="#fff"/>
+  <circle cx="298" cy="203" r="19" fill="#f4ad42"/>
+  <path d="M375 161c37 7 59 33 48 61-9 23-38 36-64 28-23-7-34-25-27-45 7-25 23-47 43-44Z" fill="#d8944e"/>
+  <path d="M224 273c26 13 52 18 77 13m93-5c15-6 27-16 36-29" fill="none" stroke="#78945c" stroke-linecap="round" stroke-width="14"/>
+  <circle cx="162" cy="116" r="19" fill="#df8d4b"/><circle cx="477" cy="279" r="13" fill="#78945c"/>
+  <path d="M124 298c18-13 36-13 52 0m293-181c13-10 26-10 39 0" fill="none" stroke="#b96d50" stroke-linecap="round" stroke-width="8"/>
+</svg>
