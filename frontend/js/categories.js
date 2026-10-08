@@ -33,6 +33,14 @@ const categoriesContainer =
         "categories-container"
     );
 
+const categoryImagePaths = new Map([
+    ["pusryčiai", "assets/images/Breakfast.jpg"],
+    ["pagrindiniai patiekalai", "assets/images/Main_Dishes.jpg"],
+    ["desertai", "assets/images/Desert.jpg"],
+    ["sveiki užkandžiai ir salotos", "assets/images/Healthy_Snacks_And_Salads.jpg"],
+    ["sriubos", "assets/images/Soups.jpg"]
+]);
+
 const categoryRecipesContainer =
     document.getElementById(
         "category-recipes-container"
@@ -375,16 +383,13 @@ function displayCategories(
     categories.forEach(
         category => {
 
-        const categoryImage =
-            category.name
-                ?.trim()
-                .toLocaleLowerCase("lt-LT") === "pusryčiai"
-                ? "assets/images/Breakfast.jpg"
-                : null;
+            const categoryImage = categoryImagePaths.get(
+                category.name?.trim().toLocaleLowerCase("lt-LT")
+            );
 
-        const card =
-            document.createElement(
-                "article"
+            const card =
+                document.createElement(
+                    "article"
                 );
 
 
@@ -806,6 +811,9 @@ function displayCategoryRecipes(
             card.className =
                 "recipe-card";
 
+            const recipeImagePath =
+                getRecipeImagePath(recipe);
+
 
             /*
              * Naudojame tą pačią ownership/role logiką
@@ -856,7 +864,11 @@ function displayCategoryRecipes(
             card.innerHTML = `
 
                 <div class="recipe-image">
-                    <span>Receptas</span>
+                    ${
+                        recipeImagePath
+                            ? `<img src="${recipeImagePath}" alt="${escapeCategoryHtml(recipe.title)}">`
+                            : "<span>Receptas</span>"
+                    }
                 </div>
 
 

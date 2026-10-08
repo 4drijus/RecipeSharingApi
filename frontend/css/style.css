@@ -169,10 +169,14 @@ body {
     font-size: 4rem;
 }
 
-.category-image img {
+.recipe-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.category-image img {
+    display: block;
 }
 
 .recipe-card-content {

@@ -9,6 +9,180 @@ let totalPages = 1;
 
 let recipeToDelete = null;
 
+const recipeImagePaths = new Map([
+    [
+        "klasikinis purus omletas su sūriu ir žalumynais",
+        "assets/images/recipes/Omelet_With_Cheese_And_Dill.jpg"
+    ],
+    [
+        "varškėčiai su vanile ir uogomis",
+        "assets/images/recipes/Varškėčiai.jpg"
+    ],
+    [
+        "avižinė košė su obuoliais ir cinamonu",
+        "assets/images/recipes/Avižinė_Košė.jpg"
+    ],
+    [
+        "lietiniai blynai su varškės įdaru",
+        "assets/images/recipes/Crepes_Suzzute.jpg"
+    ],
+    [
+        "avokado skrudutis su kiaušiniu marškinėliuose",
+        "assets/images/recipes/Avocado_Egg_Toast.jpg"
+    ],
+    [
+        "grietinėlės ir pievagrybių padaže troškinta vištiena",
+        "assets/images/recipes/Chicken_In_Cream.jpg"
+    ],
+    [
+        "tradicinis jautienos bolonijos padažas su makaronais",
+        "assets/images/recipes/Bolognaise.jpg"
+    ],
+    [
+        "kepta lašišos filė su citrina ir smidrais",
+        "assets/images/recipes/Salmon.jpg"
+    ],
+    [
+        "kiaulienos sprandinės kepsniai marinate",
+        "assets/images/recipes/Pork_Neck.jpg"
+    ],
+    [
+        "cezario salotos su vištiena",
+        "assets/images/recipes/Ceasar_Salad.jpg"
+    ],
+    [
+        "graikiškos salotos su feta ir alyvuogėmis",
+        "assets/images/recipes/Greek_Salad.jpg"
+    ],
+    [
+        "trinta avokado užtepėlė (guacamole) su nachos",
+        "assets/images/recipes/Nachos_With_Guac.jpg"
+    ],
+    [
+        "morkų ir humuso užkandis indeliuose",
+        "assets/images/recipes/Carrot_Hummus_Snack.jpg"
+    ],
+    [
+        "kinojos ir kepintų daržovių salotos",
+        "assets/images/recipes/Grilled_Salad.jpg"
+    ]
+]);
+
+function getRecipeImagePath(recipe) {
+    const normalizedTitle =
+        recipe.title?.trim().toLocaleLowerCase("lt-LT");
+
+    const exactMatch =
+        recipeImagePaths.get(normalizedTitle);
+
+    if (exactMatch) {
+        return exactMatch;
+    }
+
+    if (
+        normalizedTitle?.includes("vištien") &&
+        (normalizedTitle.includes("grietinėl") ||
+            normalizedTitle.includes("pievagryb"))
+    ) {
+        return "assets/images/recipes/Chicken_In_Cream.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("bolon") ||
+        normalizedTitle?.includes("bologn")
+    ) {
+        return "assets/images/recipes/Bolognaise.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("lašiš") ||
+        normalizedTitle?.includes("salmon")
+    ) {
+        return "assets/images/recipes/Salmon.jpg";
+    }
+
+    if (normalizedTitle?.includes("sprandin")) {
+        return "assets/images/recipes/Pork_Neck.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("mėsain") ||
+        normalizedTitle?.includes("burger")
+    ) {
+        return "assets/images/recipes/Burgers.jpg";
+    }
+
+    if (normalizedTitle?.includes("tiramisu")) {
+        return "assets/images/recipes/Tiramisu.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("cheesecake") ||
+        normalizedTitle?.includes("varškės pyrag")
+    ) {
+        return "assets/images/recipes/Cheesecake.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("brownie") ||
+        normalizedTitle?.includes("brownies")
+    ) {
+        return "assets/images/recipes/Applie_Pie.jpg";
+    }
+
+    if (normalizedTitle?.includes("obuolių pyrag")) {
+        return "assets/images/recipes/Crepes.jpg";
+    }
+
+    if (normalizedTitle?.includes("suzette")) {
+        return "assets/images/recipes/Browny.jpg";
+    }
+
+    if (normalizedTitle?.includes("moliūgų sriub")) {
+        return "assets/images/recipes/Pumpkin_Soup.jpg";
+    }
+
+    if (normalizedTitle?.includes("baršč")) {
+        return "assets/images/recipes/Tom_Yum.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("tom yum") ||
+        normalizedTitle?.includes("krevet")
+    ) {
+        return "assets/images/recipes/Borcsch.jpg";
+    }
+
+    if (normalizedTitle?.includes("svogūnų sriub")) {
+        return "assets/images/recipes/French_Onion_Soup.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("vištienos sriub") ||
+        normalizedTitle?.includes("chicken soup")
+    ) {
+        return "assets/images/recipes/Chicken_Soup.jpg";
+    }
+
+    if (
+        normalizedTitle?.includes("red curry") ||
+        normalizedTitle?.includes("curry") ||
+        normalizedTitle?.includes("karis")
+    ) {
+        return "assets/images/recipes/Red_Curryjpg.jpg";
+    }
+
+    if (
+        (normalizedTitle?.includes("avokad") ||
+            normalizedTitle?.includes("avokat")) &&
+        normalizedTitle.includes("kiaušin")
+    ) {
+        return "assets/images/recipes/Avocado_Egg_Toast.jpg";
+    }
+
+    return undefined;
+}
+
 
 /* =========================
    RECIPE PERMISSIONS
@@ -177,6 +351,9 @@ function displayRecipes(
             card.className =
                 "recipe-card";
 
+            const recipeImagePath =
+                getRecipeImagePath(recipe);
+
 
             let actionButtons = `
                 <button
@@ -228,7 +405,11 @@ function displayRecipes(
             card.innerHTML = `
 
                 <div class="recipe-image">
-                    <span>Receptas</span>
+                    ${
+                        recipeImagePath
+                            ? `<img src="${recipeImagePath}" alt="${escapeRecipeHtml(recipe.title)}">`
+                            : "<span>Receptas</span>"
+                    }
                 </div>
 
 
