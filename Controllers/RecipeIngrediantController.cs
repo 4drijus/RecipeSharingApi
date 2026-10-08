@@ -45,6 +45,37 @@ public class RecipeIngredientsController : ControllerBase
         return Ok(ingredients);
     }
 
+    // GET (api/categories/1/recipes/1/ingredients)
+    [HttpGet("/api/categories/{categoryId:int}/recipes/{recipeId:int}/ingredients")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<RecipeIngredientDto>>> GetIngredientsByCategory(
+        int categoryId,
+        int recipeId)
+    {
+        var recipeBelongsToCategory = await _context.Recipes
+            .AnyAsync(r => r.Id == recipeId && r.CategoryId == categoryId);
+
+        if (!recipeBelongsToCategory)
+        {
+            return NotFound();
+        }
+
+        var ingredients = await _context.RecipeIngredients
+            .Where(i => i.RecipeId == recipeId)
+            .Select(i => new RecipeIngredientDto
+            {
+                Id = i.Id,
+                RecipeId = i.RecipeId,
+                Name = i.Name,
+                Quantity = i.Quantity,
+                Unit = i.Unit
+            })
+            .ToListAsync();
+
+        return Ok(ingredients);
+    }
+
     // GET (api/recipes/1/ingredients/id)
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]

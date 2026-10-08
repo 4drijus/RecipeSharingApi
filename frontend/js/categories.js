@@ -17,6 +17,11 @@ const categoryRecipesPage =
         "category-recipes-page"
     );
 
+const usersPage =
+    document.getElementById(
+        "users-page"
+    );
+
 const recipesPage =
     document.getElementById(
         "recipes-page"
@@ -189,6 +194,13 @@ function showCategoryPage(
 
     }
 
+    if (usersPage) {
+
+        usersPage.classList.add(
+            "hidden"
+        );
+    }
+
 
     if (page === "recipes") {
 
@@ -217,6 +229,18 @@ function showCategoryPage(
 
         return;
 
+    }
+
+    if (page === "users") {
+
+        if (usersPage) {
+
+            usersPage.classList.remove(
+                "hidden"
+            );
+        }
+
+        return;
     }
 
 
@@ -351,9 +375,16 @@ function displayCategories(
     categories.forEach(
         category => {
 
-            const card =
-                document.createElement(
-                    "article"
+        const categoryImage =
+            category.name
+                ?.trim()
+                .toLocaleLowerCase("lt-LT") === "pusryčiai"
+                ? "assets/images/Breakfast.jpg"
+                : null;
+
+        const card =
+            document.createElement(
+                "article"
                 );
 
 
@@ -389,8 +420,12 @@ function displayCategories(
 
             card.innerHTML = `
 
-                <div class="recipe-image">
-                    🏷️
+                <div class="recipe-image category-image">
+                    ${
+                        categoryImage
+                            ? `<img src="${categoryImage}" alt="${escapeCategoryHtml(category.name)}">`
+                            : "<span>Kategorija</span>"
+                    }
                 </div>
 
 
@@ -646,6 +681,18 @@ async function loadCategoryRecipes(
         const result =
             await response.json();
 
+        if (
+            result.items.length === 0 &&
+            page > 1
+        ) {
+
+            await loadCategoryRecipes(
+                page - 1
+            );
+
+            return;
+        }
+
 
         displayCategoryRecipes(
             result.items || []
@@ -809,7 +856,7 @@ function displayCategoryRecipes(
             card.innerHTML = `
 
                 <div class="recipe-image">
-                    🍽️
+                    <span>Receptas</span>
                 </div>
 
 
@@ -833,7 +880,7 @@ function displayCategoryRecipes(
 
 
                     <div class="recipe-meta">
-                        ⏱️ ${recipe.preparationTime} min.
+                        Paruošimo laikas: ${recipe.preparationTime} min.
                     </div>
 
 
@@ -1292,8 +1339,9 @@ if (addCategoryForm) {
 
             if (!isCategoryAdmin()) {
 
-                alert(
-                    "Tik Admin gali kurti kategorijas."
+                showToast(
+                    "Tik Admin gali kurti kategorijas.",
+                    "error"
                 );
 
                 return;
@@ -1390,7 +1438,7 @@ if (addCategoryForm) {
                 await loadCategories();
 
 
-                alert(
+                showToast(
                     "Kategorija sėkmingai sukurta!"
                 );
 
@@ -1403,8 +1451,9 @@ if (addCategoryForm) {
                 );
 
 
-                alert(
-                    "Nepavyko sukurti kategorijos."
+                showToast(
+                    error.message || "Nepavyko sukurti kategorijos.",
+                    "error"
                 );
 
             }
@@ -1535,8 +1584,9 @@ if (editCategoryForm) {
 
             if (!isCategoryAdmin()) {
 
-                alert(
-                    "Tik Admin gali redaguoti kategorijas."
+                showToast(
+                    "Tik Admin gali redaguoti kategorijas.",
+                    "error"
                 );
 
                 return;
@@ -1636,7 +1686,7 @@ if (editCategoryForm) {
                 await loadCategories();
 
 
-                alert(
+                showToast(
                     "Kategorija sėkmingai atnaujinta!"
                 );
 
@@ -1649,8 +1699,9 @@ if (editCategoryForm) {
                 );
 
 
-                alert(
-                    "Nepavyko atnaujinti kategorijos."
+                showToast(
+                    error.message || "Nepavyko atnaujinti kategorijos.",
+                    "error"
                 );
 
             }
@@ -1771,8 +1822,9 @@ if (confirmDeleteCategory) {
 
             if (!isCategoryAdmin()) {
 
-                alert(
-                    "Tik Admin gali trinti kategorijas."
+                showToast(
+                    "Tik Admin gali trinti kategorijas.",
+                    "error"
                 );
 
                 return;
@@ -1821,7 +1873,7 @@ if (confirmDeleteCategory) {
                 await loadCategories();
 
 
-                alert(
+                showToast(
                     "Kategorija sėkmingai ištrinta!"
                 );
 
@@ -1834,8 +1886,9 @@ if (confirmDeleteCategory) {
                 );
 
 
-                alert(
-                    "Nepavyko ištrinti kategorijos."
+                showToast(
+                    error.message || "Nepavyko ištrinti kategorijos.",
+                    "error"
                 );
 
             }
@@ -2064,6 +2117,29 @@ async function handleCategoryHash() {
 
         return;
 
+    }
+
+    if (hash === "#users") {
+
+        if (!isCategoryAdmin()) {
+
+            window.location.hash =
+                "recipes";
+
+            showCategoryPage(
+                "recipes"
+            );
+
+            return;
+        }
+
+        showCategoryPage(
+            "users"
+        );
+
+        await loadAdminUsersPage();
+
+        return;
     }
 
 

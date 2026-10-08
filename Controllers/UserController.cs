@@ -79,6 +79,15 @@ public class UsersController : ControllerBase
             return NotFound();
         }
 
+        var recipes = await _context.Recipes
+            .Where(recipe => recipe.UserId == id)
+            .ToListAsync();
+
+        foreach (var recipe in recipes)
+        {
+            recipe.UserId = null;
+        }
+
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
 

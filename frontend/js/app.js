@@ -1,5 +1,58 @@
 const API_URL = "http://localhost:5000/api";
 
+function showToast(message, type = "success") {
+
+    const container =
+        document.getElementById(
+            "toast-container"
+        );
+
+    if (!container) {
+        console.error("Pranešimų konteineris nerastas.");
+        return;
+    }
+
+    const toast =
+        document.createElement("div");
+
+    toast.className =
+        `toast-message toast-${type}`;
+
+    toast.setAttribute(
+        "role",
+        type === "error" ? "alert" : "status"
+    );
+
+    const text =
+        document.createElement("span");
+
+    text.textContent = message;
+
+    const closeButton =
+        document.createElement("button");
+
+    closeButton.type = "button";
+    closeButton.className = "toast-close";
+    closeButton.setAttribute("aria-label", "Uždaryti pranešimą");
+    closeButton.textContent = "×";
+    closeButton.addEventListener(
+        "click",
+        () => toast.remove()
+    );
+
+    toast.append(
+        text,
+        closeButton
+    );
+
+    container.append(toast);
+
+    window.setTimeout(
+        () => toast.remove(),
+        5000
+    );
+}
+
 
 /* =========================
    MODAL SCROLL LOCK
@@ -506,15 +559,14 @@ if (loginForm) {
 
                 updateAuthUI();
 
-
                 if (
-                    typeof loadRecipes ===
+                    typeof refreshRecipeViews ===
                     "function"
                 ) {
 
-                    await loadRecipes(
-                        1
-                    );
+                    currentPage = 1;
+
+                    await refreshRecipeViews();
                 }
 
 
@@ -527,7 +579,7 @@ if (loginForm) {
                 }
 
 
-                alert(
+                showToast(
                     "Sėkmingai prisijungėte!"
                 );
 
@@ -540,8 +592,9 @@ if (loginForm) {
                 );
 
 
-                alert(
-                    "Nepavyko prisijungti. Patikrinkite duomenis."
+                showToast(
+                    error.message || "Nepavyko prisijungti. Patikrinkite duomenis.",
+                    "error"
                 );
             }
 
@@ -704,7 +757,7 @@ if (registerForm) {
                 );
 
 
-                alert(
+                showToast(
                     "Registracija sėkminga! Dabar galite prisijungti."
                 );
 
@@ -717,8 +770,9 @@ if (registerForm) {
                 );
 
 
-                alert(
-                    "Nepavyko užregistruoti vartotojo."
+                showToast(
+                    error.message || "Nepavyko užregistruoti vartotojo.",
+                    "error"
                 );
             }
 
@@ -743,6 +797,37 @@ function updateAuthUI() {
         localStorage.getItem(
             "accessToken"
         );
+
+    const usersNavLink =
+        document.getElementById(
+            "users-nav-link"
+        );
+
+    const isAdmin =
+        getCurrentUser()?.role === "Admin";
+
+    if (usersNavLink) {
+
+        usersNavLink.classList.toggle(
+            "hidden",
+            !isAdmin
+        );
+    }
+
+    if (
+        !isAdmin &&
+        window.location.hash === "#users"
+    ) {
+
+        window.location.hash = "recipes";
+
+        if (typeof showCategoryPage === "function") {
+
+            showCategoryPage(
+                "recipes"
+            );
+        }
+    }
 
 
     if (accessToken) {
@@ -895,19 +980,18 @@ if (logoutButton) {
 
             updateAuthUI();
 
-
             if (
-                typeof loadRecipes ===
+                typeof refreshRecipeViews ===
                 "function"
             ) {
 
-                await loadRecipes(
-                    1
-                );
+                currentPage = 1;
+
+                await refreshRecipeViews();
             }
 
 
-            alert(
+            showToast(
                 "Sėkmingai atsijungėte."
             );
         }
@@ -944,8 +1028,14 @@ if (
 
             event.stopPropagation();
 
-            mobileNav.classList.toggle(
+            const expanded =
+                mobileNav.classList.toggle(
                 "active"
+            );
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(expanded)
             );
         }
     );
@@ -962,6 +1052,11 @@ if (
 
                         mobileNav.classList.remove(
                             "active"
+                        );
+
+                        menuToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
                         );
                     }
                 );

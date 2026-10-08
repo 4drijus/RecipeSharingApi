@@ -595,8 +595,9 @@ function openIngredientModal(
         )
     ) {
 
-        alert(
-            "Neturite teisės valdyti šio recepto ingredientų."
+        showToast(
+            "Neturite teisės valdyti šio recepto ingredientų.",
+            "error"
         );
 
         return;
@@ -733,8 +734,9 @@ async function saveIngredient(
         closeIngredientModal();
 
 
-        alert(
-            "Neturite teisės valdyti šio recepto ingredientų."
+        showToast(
+            "Neturite teisės valdyti šio recepto ingredientų.",
+            "error"
         );
 
         return;
@@ -860,7 +862,7 @@ async function saveIngredient(
         );
 
 
-        alert(
+        showToast(
             editingIngredient
                 ? "Ingredientas sėkmingai atnaujintas!"
                 : "Ingredientas sėkmingai pridėtas!"
@@ -875,8 +877,9 @@ async function saveIngredient(
         );
 
 
-        alert(
-            "Nepavyko išsaugoti ingrediento."
+        showToast(
+            error.message || "Nepavyko išsaugoti ingrediento.",
+            "error"
         );
     }
 }
@@ -1042,8 +1045,9 @@ function openDeleteIngredientModal(
         )
     ) {
 
-        alert(
-            "Neturite teisės trinti šio ingrediento."
+        showToast(
+            "Neturite teisės trinti šio ingrediento.",
+            "error"
         );
 
         return;
@@ -1124,8 +1128,9 @@ async function deleteIngredient() {
         closeDeleteIngredientModal();
 
 
-        alert(
-            "Neturite teisės trinti šio ingrediento."
+        showToast(
+            "Neturite teisės trinti šio ingrediento.",
+            "error"
         );
 
         return;
@@ -1179,7 +1184,7 @@ async function deleteIngredient() {
         );
 
 
-        alert(
+        showToast(
             "Ingredientas sėkmingai ištrintas!"
         );
 
@@ -1192,8 +1197,9 @@ async function deleteIngredient() {
         );
 
 
-        alert(
-            "Nepavyko ištrinti ingrediento."
+        showToast(
+            error.message || "Nepavyko ištrinti ingrediento.",
+            "error"
         );
     }
 }

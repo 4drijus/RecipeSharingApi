@@ -31,6 +31,10 @@
                     Kategorijos
                 </a>
 
+                <a href="#users" id="users-nav-link" class="hidden">
+                    Naudotojai
+                </a>
+
                 <a href="#" id="login-button">
                     Prisijungti
                 </a>
@@ -48,8 +52,12 @@
             <button
                 type="button"
                 class="menu-toggle"
-                id="menu-toggle">
-                ☰
+                id="menu-toggle"
+                aria-label="Atverti meniu"
+                aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
 
         </div>
@@ -223,10 +231,53 @@
 
             </section>
 
+            <!-- ADMIN USERS PAGE -->
+            <section
+                id="users-page"
+                class="page-view hidden">
+
+                <div class="section-header">
+
+                    <div>
+                        <h1>Naudotojų valdymas</h1>
+                        <p class="page-description">
+                            Peržiūrėkite sistemos paskyras ir pašalinkite netinkamas.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="refresh-users-button"
+                        class="secondary-button">
+                        Atnaujinti sąrašą
+                    </button>
+
+                </div>
+
+                <p
+                    id="users-status"
+                    class="status-message"
+                    role="status"
+                    aria-live="polite">
+                </p>
+
+                <div
+                    id="users-container"
+                    class="users-list">
+                </div>
+
+            </section>
+
         </div>
 
     </main>
 
+    <div
+        id="toast-container"
+        class="toast-container"
+        aria-live="polite"
+        aria-relevant="additions">
+    </div>
 
     <!-- FOOTER -->
     <footer class="site-footer">
@@ -891,10 +942,82 @@
 
     </div>
 
+    <!-- USER DETAILS MODAL -->
+    <div
+        id="user-details-modal"
+        class="modal hidden">
+
+        <div class="modal-content">
+
+            <button
+                type="button"
+                id="close-user-details-modal"
+                class="modal-close"
+                aria-label="Uždaryti">
+                ×
+            </button>
+
+            <h2>Naudotojo informacija</h2>
+            <p id="user-details-status" class="status-message" role="status"></p>
+            <dl id="user-details-list" class="user-details-list"></dl>
+
+        </div>
+
+    </div>
+
+    <!-- DELETE USER CONFIRMATION MODAL -->
+    <div
+        id="delete-user-modal"
+        class="modal hidden">
+
+        <div class="modal-content">
+
+            <button
+                type="button"
+                id="close-delete-user-modal"
+                class="modal-close"
+                aria-label="Uždaryti">
+                ×
+            </button>
+
+            <h2>Pašalinti paskyrą</h2>
+            <p id="delete-user-message"></p>
+            <p class="page-description">
+                Paskyros naudotojo sukurti receptai liks kataloge be savininko.
+                Šio veiksmo atšaukti negalėsite.
+            </p>
+
+            <div class="recipe-card-actions">
+                <button
+                    type="button"
+                    id="cancel-delete-user"
+                    class="secondary-button">
+                    Atšaukti
+                </button>
+                <button
+                    type="button"
+                    id="confirm-delete-user"
+                    class="danger-button">
+                    Pašalinti paskyrą
+                </button>
+            </div>
+
+            <p
+                id="delete-user-status"
+                class="status-message"
+                role="status"
+                aria-live="polite">
+            </p>
+
+        </div>
+
+    </div>
+
 
 <!-- JAVASCRIPT -->
 <script src="js/app.js"></script>
 <script src="js/recipes.js"></script>
+<script src="js/users.js"></script>
 <script src="js/categories.js"></script>
 <script src="js/ingredients.js"></script>
 <script src="js/main.js"></script>

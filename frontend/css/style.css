@@ -64,10 +64,23 @@ body {
 
 .menu-toggle {
     display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
     border: none;
     background: transparent;
-    font-size: 1.6rem;
     cursor: pointer;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 2px;
+    margin: 0 auto;
+    border-radius: 2px;
+    background: #333;
 }
 
 /* MAIN */
@@ -156,6 +169,12 @@ body {
     font-size: 4rem;
 }
 
+.category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .recipe-card-content {
     padding: 20px;
 }
@@ -200,6 +219,146 @@ body {
 .secondary-button:hover {
     background: #d97745;
     color: white;
+}
+
+.page-description {
+    margin-top: 5px;
+    color: #666;
+}
+
+.users-list {
+    display: grid;
+    gap: 14px;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.user-row h2 {
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.user-row p {
+    color: #666;
+    overflow-wrap: anywhere;
+}
+
+.user-row-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.user-details-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 20px;
+    margin-top: 20px;
+}
+
+.user-details-list dt {
+    color: #666;
+    font-weight: 600;
+}
+
+.user-details-list dd {
+    overflow-wrap: anywhere;
+}
+
+.status-message {
+    margin: 14px 0;
+    color: #666;
+}
+
+.status-message:empty {
+    display: none;
+}
+
+.status-message[data-type="error"] {
+    color: #a12b23;
+}
+
+.status-message[data-type="success"] {
+    color: #287344;
+}
+
+.danger-button {
+    border: none;
+    background: #a12b23;
+    color: #ffffff;
+    padding: 9px 15px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.danger-button:hover {
+    background: #81221c;
+}
+
+.danger-button:disabled,
+.secondary-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: grid;
+    gap: 10px;
+    width: min(420px, calc(100vw - 32px));
+}
+
+.toast-message {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 15px 17px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.15);
+    animation: toastAppear 0.2s ease-out;
+}
+
+.toast-success {
+    border-color: #b8dfc5;
+    color: #205c34;
+}
+
+.toast-error {
+    border-color: #e5b9b5;
+    color: #842c25;
+}
+
+.toast-info {
+    border-color: #c4d7e8;
+    color: #28516f;
+}
+
+.toast-close {
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
 }
 
 /* PAGINATION */
@@ -318,6 +477,10 @@ body {
     margin-bottom: 20px;
 }
 
+#modal-instructions {
+    white-space: pre-line;
+}
+
 .modal-content h3 {
     font-size: 1.1rem;
     margin-bottom: 10px;
@@ -428,6 +591,18 @@ body {
     }
 }
 
+@keyframes toastAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 768px) {
@@ -437,7 +612,7 @@ body {
     }
 
     .menu-toggle {
-        display: block;
+        display: flex;
     }
 
     /* MOBILE NAVIGATION */
@@ -493,6 +668,20 @@ body {
         width: 100%;
     }
 
+    .user-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .user-row-actions {
+        flex-direction: column;
+    }
+
+    .user-row-actions button {
+        width: 100%;
+    }
+
     .pagination {
         gap: 6px;
         margin-top: 25px;
@@ -507,6 +696,11 @@ body {
 
     .modal {
         padding: 12px;
+    }
+
+    .toast-container {
+        top: 12px;
+        right: 12px;
     }
 
     .modal-content {

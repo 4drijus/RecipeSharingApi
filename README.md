@@ -391,6 +391,11 @@ dotnet ef database update
 | DELETE | `/api/users/{id}` | Ištrinti naudotoją       | `Admin`      |
 
 Slaptažodžio hash naudotojų endpointuose negrąžinamas.
+Frontend administratoriaus navigacijoje yra „Naudotojai“ skiltis: joje galima peržiūrėti
+paskyrų sąrašą, atverti naudotojo informaciją ir pašalinti kito naudotojo paskyrą.
+Pašalinus paskyrą, jos receptai lieka viešame kataloge be savininko.
+Sąsajos sėkmės ir klaidų pranešimai pateikiami puslapyje, o receptų sąrašai po pakeitimų
+atnaujinami automatiškai.
 
 ## Categories
 
@@ -499,10 +504,25 @@ Pavyzdinė struktūra:
     {
       "rel": "ingredients",
       "href": "/api/recipes/1/ingredients"
+    },
+    {
+      "rel": "categoryIngredients",
+      "href": "/api/categories/1/recipes/1/ingredients"
     }
   ]
 }
 ```
+
+Ingredientus taip pat galima gauti URL, kuris apriboja užklausą visais trimis
+domeno objektais — kategorija, receptu ir ingredientais:
+
+```http
+GET /api/categories/{categoryId}/recipes/{recipeId}/ingredients
+```
+
+Receptas turi priklausyti nurodytai kategorijai. Jei receptas nerastas arba
+nepriklauso tai kategorijai, API grąžina `404 Not Found`. Atsakyme pateikiamas
+nurodyto recepto ingredientų sąrašas JSON formatu.
 
 ---
 

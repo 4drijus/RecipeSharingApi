@@ -122,6 +122,25 @@ async function loadRecipes(
     }
 }
 
+async function refreshRecipeViews() {
+
+    await loadRecipes(
+        currentPage
+    );
+
+    if (
+        typeof currentCategoryId !== "undefined" &&
+        currentCategoryId !== null &&
+        typeof categoryRecipesPage !== "undefined" &&
+        !categoryRecipesPage.classList.contains("hidden")
+    ) {
+
+        await loadCategoryRecipes(
+            currentCategoryPage
+        );
+    }
+}
+
 
 /* =========================
    DISPLAY RECIPES
@@ -209,7 +228,7 @@ function displayRecipes(
             card.innerHTML = `
 
                 <div class="recipe-image">
-                    🍽️
+                    <span>Receptas</span>
                 </div>
 
 
@@ -232,7 +251,7 @@ function displayRecipes(
                     <div class="recipe-meta">
 
                         <span>
-                            ⏱️ ${recipe.preparationTime} min
+                            Paruošimo laikas: ${recipe.preparationTime} min
                         </span>
 
                     </div>
@@ -812,8 +831,9 @@ if (addRecipeForm) {
 
             if (!accessToken) {
 
-                alert(
-                    "Norint sukurti receptą reikia prisijungti."
+                showToast(
+                    "Norint sukurti receptą reikia prisijungti.",
+                    "error"
                 );
 
                 return;
@@ -905,12 +925,9 @@ if (addRecipeForm) {
                     1;
 
 
-                await loadRecipes(
-                    currentPage
-                );
+                await refreshRecipeViews();
 
-
-                alert(
+                showToast(
                     "Receptas sėkmingai sukurtas!"
                 );
 
@@ -923,8 +940,9 @@ if (addRecipeForm) {
                 );
 
 
-                alert(
-                    "Nepavyko sukurti recepto."
+                showToast(
+                    error.message || "Nepavyko sukurti recepto.",
+                    "error"
                 );
             }
 
@@ -965,8 +983,9 @@ function openEditRecipeModal(
         )
     ) {
 
-        alert(
-            "Neturite teisės redaguoti šio recepto."
+        showToast(
+            "Neturite teisės redaguoti šio recepto.",
+            "error"
         );
 
         return;
@@ -1145,12 +1164,9 @@ if (editRecipeForm) {
                 );
 
 
-                await loadRecipes(
-                    currentPage
-                );
+                await refreshRecipeViews();
 
-
-                alert(
+                showToast(
                     "Receptas sėkmingai atnaujintas!"
                 );
 
@@ -1163,8 +1179,9 @@ if (editRecipeForm) {
                 );
 
 
-                alert(
-                    "Nepavyko atnaujinti recepto."
+                showToast(
+                    error.message || "Nepavyko atnaujinti recepto.",
+                    "error"
                 );
             }
 
@@ -1323,8 +1340,9 @@ function openDeleteRecipeModal(
         )
     ) {
 
-        alert(
-            "Neturite teisės trinti šio recepto."
+        showToast(
+            "Neturite teisės trinti šio recepto.",
+            "error"
         );
 
         return;
@@ -1389,8 +1407,9 @@ async function deleteRecipe() {
         closeDeleteRecipeModal();
 
 
-        alert(
-            "Neturite teisės trinti šio recepto."
+        showToast(
+            "Neturite teisės trinti šio recepto.",
+            "error"
         );
 
         return;
@@ -1424,12 +1443,9 @@ async function deleteRecipe() {
         closeDeleteRecipeModal();
 
 
-        await loadRecipes(
-            currentPage
-        );
+        await refreshRecipeViews();
 
-
-        alert(
+        showToast(
             "Receptas sėkmingai ištrintas!"
         );
 
@@ -1442,8 +1458,9 @@ async function deleteRecipe() {
         );
 
 
-        alert(
-            "Nepavyko ištrinti recepto."
+        showToast(
+            error.message || "Nepavyko ištrinti recepto.",
+            "error"
         );
     }
 }

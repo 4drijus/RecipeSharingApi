@@ -304,6 +304,11 @@ public class RecipesController : ControllerBase
                     {
                         Rel = "ingredients",
                         Href = $"/api/recipes/{r.Id}/ingredients"
+                    },
+                    new HypermediaLinkDto
+                    {
+                        Rel = "categoryIngredients",
+                        Href = $"/api/categories/{r.CategoryId}/recipes/{r.Id}/ingredients"
                     }
                 }
             }).FirstOrDefaultAsync();

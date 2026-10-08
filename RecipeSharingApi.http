@@ -4,3 +4,20 @@ GET {{RecipeSharingApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+# Pakeiskite categoryId ir recipeId į atitinkančios kategorijos ir recepto ID.
+@categoryId = 1
+@recipeId = 1
+@otherCategoryId = 2
+
+### Gauti recepto ingredientus per kategorijos ir recepto hierarchiją
+GET {{RecipeSharingApi_HostAddress}}/api/categories/{{categoryId}}/recipes/{{recipeId}}/ingredients
+Accept: application/json
+
+### Receptas nepriklauso nurodytai kategorijai (naudokite esamos kitos kategorijos ID)
+GET {{RecipeSharingApi_HostAddress}}/api/categories/{{otherCategoryId}}/recipes/{{recipeId}}/ingredients
+Accept: application/json
+
+### Nerastas receptas arba kategorija
+GET {{RecipeSharingApi_HostAddress}}/api/categories/999999/recipes/999999/ingredients
+Accept: application/json
