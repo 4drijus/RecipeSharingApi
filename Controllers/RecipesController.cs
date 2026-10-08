@@ -59,7 +59,8 @@ public class RecipesController : ControllerBase
                 Instructions = r.Instructions,
                 PreparationTime = r.PreparationTime,
                 CategoryId = r.CategoryId,
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+                UserId = r.UserId
             }).ToListAsync();
 
         var result = new PagedRecipesDto
@@ -89,7 +90,8 @@ public class RecipesController : ControllerBase
             Instructions = r.Instructions,
             PreparationTime = r.PreparationTime,
             CategoryId = r.CategoryId,
-            CreatedAt = r.CreatedAt
+            CreatedAt = r.CreatedAt,
+            UserId = r.UserId
         }).FirstOrDefaultAsync();
 
         if (recipe == null)
@@ -119,7 +121,7 @@ public class RecipesController : ControllerBase
 
         if (!int.TryParse(userIdClaim, out var userId))
         {
-            return Unauthorized();
+            return Unauthorized($"JWT user ID claim: {userIdClaim}");
         }
 
         var recipe = new Recipe
@@ -144,7 +146,8 @@ public class RecipesController : ControllerBase
             Instructions = recipe.Instructions,
             PreparationTime = recipe.PreparationTime,
             CategoryId = recipe.CategoryId,
-            CreatedAt = recipe.CreatedAt
+            CreatedAt = recipe.CreatedAt,
+            UserId = recipe.UserId
         };
 
         return CreatedAtAction(nameof(GetRecipe), new
@@ -205,7 +208,8 @@ public class RecipesController : ControllerBase
             Instructions = recipe.Instructions,
             PreparationTime = recipe.PreparationTime,
             CategoryId = recipe.CategoryId,
-            CreatedAt = recipe.CreatedAt
+            CreatedAt = recipe.CreatedAt,
+            UserId = recipe.UserId
         });
     }
 

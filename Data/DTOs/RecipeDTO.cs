@@ -21,6 +21,7 @@ public class RecipeDto
 
     [Range(1, int.MaxValue)]
     public int CategoryId { get; set; }
+    public int? UserId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }
