@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseWebRoot(Path.Combine(builder.Environment.ContentRootPath, "frontend"));
 
 // OpenAPI
 builder.Services.AddOpenApi();
@@ -65,6 +66,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseCors("Frontend");
 

@@ -1,4 +1,8 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL =
+    window.location.protocol === "file:" ||
+    window.location.port === "5500"
+        ? "http://localhost:5000/api"
+        : `${window.location.origin}/api`;
 
 function showToast(message, type = "success") {
 

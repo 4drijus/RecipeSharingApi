@@ -38,6 +38,9 @@ body {
 }
 
 .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     color: #222;
     text-decoration: none;
     font-size: 1.3rem;
@@ -46,14 +49,25 @@ body {
 
 .desktop-nav {
     display: flex;
+    align-items: center;
     gap: 28px;
 }
 
 .desktop-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     color: #444;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s ease;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    object-fit: contain;
 }
 
 .desktop-nav a:hover {
@@ -638,7 +652,8 @@ body {
     }
 
     .desktop-nav.active a {
-        display: block;
+        display: flex;
+        align-items: center;
         padding: 12px 18px;
     }
 
