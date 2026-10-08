@@ -47,6 +47,12 @@ body {
     font-weight: 700;
 }
 
+.logo .nav-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+}
+
 .desktop-nav {
     display: flex;
     align-items: center;
