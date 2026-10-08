@@ -34,11 +34,11 @@ const categoriesContainer =
     );
 
 const categoryImagePaths = new Map([
-    ["pusryčiai", "assets/images/Breakfast.jpg"],
-    ["pagrindiniai patiekalai", "assets/images/Main_Dishes.jpg"],
-    ["desertai", "assets/images/Desert.jpg"],
-    ["sveiki užkandžiai ir salotos", "assets/images/Healthy_Snacks_And_Salads.jpg"],
-    ["sriubos", "assets/images/Soups.jpg"]
+    ["pusryčiai", "assets/images/categories/Breakfast.svg"],
+    ["pagrindiniai patiekalai", "assets/images/categories/Main_Dishes.svg"],
+    ["desertai", "assets/images/categories/Desserts.svg"],
+    ["sveiki užkandžiai ir salotos", "assets/images/categories/Salads.svg"],
+    ["sriubos", "assets/images/categories/Soups.svg"]
 ]);
 
 const categoryRecipesContainer =

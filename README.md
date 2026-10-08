@@ -753,7 +753,8 @@ mėnesinį nemokamų valandų limitą.
 
 Naujos receptų ir kategorijų nuotraukos saugomos Cloudinary, o duomenų bazėje
 laikomas tik `ImageUrl`. Esamiems receptams ir kategorijoms be `ImageUrl`
-frontend toliau naudoja projekte esančius paveikslėlius.
+frontend naudoja projekte esančias neutralias SVG iliustracijas. Jos sukurtos
+šiam projektui ir pakeičia anksčiau naudotas nepatikrintos licencijos nuotraukas.
 
 Render aplinkoje saugiai nustatykite šiuos Cloudinary aplinkos kintamuosius:
 

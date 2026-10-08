@@ -29,10 +29,10 @@ Content-Disposition: form-data; name="categoryId"
 
 {{categoryId}}
 --RecipeUploadBoundary
-Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Disposition: form-data; name="image"; filename="your-recipe-photo.jpg"
 Content-Type: image/jpeg
 
-< ./frontend/assets/images/Breakfast.jpg
+< ./path/to/your-recipe-photo.jpg
 --RecipeUploadBoundary--
 
 ### Create a category with an image (Admin)
@@ -49,10 +49,10 @@ Content-Disposition: form-data; name="description"
 
 Category with an uploaded photo
 --CategoryUploadBoundary
-Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Disposition: form-data; name="image"; filename="your-category-photo.jpg"
 Content-Type: image/jpeg
 
-< ./frontend/assets/images/Breakfast.jpg
+< ./path/to/your-category-photo.jpg
 --CategoryUploadBoundary--
 
 ### Replace a recipe image (recipe owner or Admin)
@@ -61,10 +61,10 @@ Authorization: Bearer {{accessToken}}
 Content-Type: multipart/form-data; boundary=RecipeImageBoundary
 
 --RecipeImageBoundary
-Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Disposition: form-data; name="image"; filename="your-recipe-photo.jpg"
 Content-Type: image/jpeg
 
-< ./frontend/assets/images/Breakfast.jpg
+< ./path/to/your-recipe-photo.jpg
 --RecipeImageBoundary--
 
 ### Replace a category image (Admin)
@@ -73,8 +73,8 @@ Authorization: Bearer {{accessToken}}
 Content-Type: multipart/form-data; boundary=CategoryImageBoundary
 
 --CategoryImageBoundary
-Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Disposition: form-data; name="image"; filename="your-category-photo.jpg"
 Content-Type: image/jpeg
 
-< ./frontend/assets/images/Breakfast.jpg
+< ./path/to/your-category-photo.jpg
 --CategoryImageBoundary--
