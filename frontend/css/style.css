@@ -575,6 +575,13 @@ body {
     cursor: pointer;
 }
 
+.form-help {
+    display: block;
+    margin-top: 6px;
+    color: #666;
+    font-size: 0.82rem;
+}
+
 .form-submit-button {
     width: 100%;
     margin-top: 8px;

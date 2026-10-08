@@ -8,6 +8,7 @@ public class RecipeDetailsDto
     public String Title { get; set; } = string.Empty;
     public String? Description { get; set; }
     public string Instructions { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public int PreparationTime { get; set; }
     public DateTime CreatedAt { get; set; }
     public CategoryDto? Category { get; set; }

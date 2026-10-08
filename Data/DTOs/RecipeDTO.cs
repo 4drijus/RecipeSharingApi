@@ -16,6 +16,8 @@ public class RecipeDto
     [Required]
     public string Instructions { get; set; } = string.Empty;
 
+    public string? ImageUrl { get; set; }
+
     [Range(1,1440)]
     public int PreparationTime { get; set; }
 

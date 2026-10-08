@@ -1,0 +1,80 @@
+@baseUrl = http://localhost:5000
+@accessToken = REPLACE_WITH_ACCESS_TOKEN
+@recipeId = 101
+@categoryId = 1
+
+### Create a recipe with an image
+POST {{baseUrl}}/api/recipes/with-image
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=RecipeUploadBoundary
+
+--RecipeUploadBoundary
+Content-Disposition: form-data; name="title"
+
+HTTP test recipe
+--RecipeUploadBoundary
+Content-Disposition: form-data; name="description"
+
+Recipe with an uploaded photo
+--RecipeUploadBoundary
+Content-Disposition: form-data; name="instructions"
+
+Prepare the recipe.
+--RecipeUploadBoundary
+Content-Disposition: form-data; name="preparationTime"
+
+20
+--RecipeUploadBoundary
+Content-Disposition: form-data; name="categoryId"
+
+{{categoryId}}
+--RecipeUploadBoundary
+Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Type: image/jpeg
+
+< ./frontend/assets/images/Breakfast.jpg
+--RecipeUploadBoundary--
+
+### Create a category with an image (Admin)
+POST {{baseUrl}}/api/categories/with-image
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=CategoryUploadBoundary
+
+--CategoryUploadBoundary
+Content-Disposition: form-data; name="name"
+
+HTTP test category
+--CategoryUploadBoundary
+Content-Disposition: form-data; name="description"
+
+Category with an uploaded photo
+--CategoryUploadBoundary
+Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Type: image/jpeg
+
+< ./frontend/assets/images/Breakfast.jpg
+--CategoryUploadBoundary--
+
+### Replace a recipe image (recipe owner or Admin)
+POST {{baseUrl}}/api/recipes/{{recipeId}}/image
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=RecipeImageBoundary
+
+--RecipeImageBoundary
+Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Type: image/jpeg
+
+< ./frontend/assets/images/Breakfast.jpg
+--RecipeImageBoundary--
+
+### Replace a category image (Admin)
+POST {{baseUrl}}/api/categories/{{categoryId}}/image
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=CategoryImageBoundary
+
+--CategoryImageBoundary
+Content-Disposition: form-data; name="image"; filename="Breakfast.jpg"
+Content-Type: image/jpeg
+
+< ./frontend/assets/images/Breakfast.jpg
+--CategoryImageBoundary--

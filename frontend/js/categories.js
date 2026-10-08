@@ -383,9 +383,11 @@ function displayCategories(
     categories.forEach(
         category => {
 
-            const categoryImage = categoryImagePaths.get(
-                category.name?.trim().toLocaleLowerCase("lt-LT")
-            );
+            const categoryImage =
+                getStoredImageUrl(category.imageUrl) ||
+                categoryImagePaths.get(
+                    category.name?.trim().toLocaleLowerCase("lt-LT")
+                );
 
             const card =
                 document.createElement(
@@ -1366,42 +1368,38 @@ if (addCategoryForm) {
                     addCategoryForm
                 );
 
+            const imageFile = formData.get("image");
+            const hasImage = imageFile instanceof File && imageFile.size > 0;
+
+            if (hasImage && imageFile.size > 5 * 1024 * 1024) {
+                showToast("Nuotrauka negali būti didesnė nei 5 MB.", "error");
+                return;
+            }
 
             const category = {
-
-                name:
-                    formData.get(
-                        "name"
-                    ),
-
-                description:
-                    formData.get(
-                        "description"
-                    ) || null
-
+                name: formData.get("name"),
+                description: formData.get("description") || null
             };
-
 
             try {
 
                 const response =
                     await apiFetch(
-                        `${API_URL}/categories`,
-                        {
-
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify(
-                                    category
-                                )
-
-                        }
+                        hasImage
+                            ? `${API_URL}/categories/with-image`
+                            : `${API_URL}/categories`,
+                        hasImage
+                            ? {
+                                method: "POST",
+                                body: formData
+                            }
+                            : {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(category)
+                            }
                     );
 
 
@@ -1523,6 +1521,12 @@ function openEditCategoryModal(
     descriptionInput.value =
         category.description || "";
 
+    const imageInput =
+        document.getElementById("edit-category-image");
+    if (imageInput) {
+        imageInput.value = "";
+    }
+
 
     if (
         typeof showModal ===
@@ -1632,6 +1636,13 @@ if (editCategoryForm) {
 
             };
 
+            const imageFile = formData.get("image");
+            if (imageFile instanceof File && imageFile.size > 0 &&
+                imageFile.size > 5 * 1024 * 1024) {
+                showToast("Nuotrauka negali būti didesnė nei 5 MB.", "error");
+                return;
+            }
+
 
             try {
 
@@ -1667,6 +1678,13 @@ if (editCategoryForm) {
                         "Nepavyko atnaujinti kategorijos."
                     );
 
+                }
+
+                if (imageFile instanceof File && imageFile.size > 0) {
+                    await uploadImage(
+                        `${API_URL}/categories/${categoryId}/image`,
+                        imageFile
+                    );
                 }
 
 

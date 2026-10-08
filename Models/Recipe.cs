@@ -10,6 +10,8 @@ public class Recipe
 
     public string Instructions { get; set; } = string.Empty;
 
+    public string? ImageUrl { get; set; }
+
     public int PreparationTime { get; set; }
 
     public int CategoryId { get; set; }

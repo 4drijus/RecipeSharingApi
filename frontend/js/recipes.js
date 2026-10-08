@@ -69,6 +69,15 @@ const recipeImagePaths = new Map([
 ]);
 
 function getRecipeImagePath(recipe) {
+    const storedImageUrl =
+        typeof getStoredImageUrl === "function"
+            ? getStoredImageUrl(recipe.imageUrl)
+            : null;
+
+    if (storedImageUrl) {
+        return storedImageUrl;
+    }
+
     const normalizedTitle =
         recipe.title?.trim().toLocaleLowerCase("lt-LT");
 
@@ -1059,25 +1068,34 @@ if (addRecipeForm) {
                     )
             };
 
+            const imageFile = formData.get("image");
+            const hasImage = imageFile instanceof File && imageFile.size > 0;
+
+            if (hasImage && imageFile.size > 5 * 1024 * 1024) {
+                showToast("Nuotrauka negali būti didesnė nei 5 MB.", "error");
+                return;
+            }
+
 
             try {
 
                 const response =
                     await apiFetch(
-                        `${API_URL}/recipes`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify(
-                                    recipe
-                                )
-                        }
+                        hasImage
+                            ? `${API_URL}/recipes/with-image`
+                            : `${API_URL}/recipes`,
+                        hasImage
+                            ? {
+                                method: "POST",
+                                body: formData
+                            }
+                            : {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(recipe)
+                            }
                     );
 
 
@@ -1208,6 +1226,10 @@ function openEditRecipeModal(
     ).value =
         recipe.categoryId ?? "";
 
+    document.getElementById(
+        "edit-recipe-image"
+    ).value = "";
+
 
     showModal(
         editRecipeModal
@@ -1302,6 +1324,12 @@ if (editRecipeForm) {
                     )
             };
 
+            const imageFile = formData.get("image");
+            if (imageFile instanceof File && imageFile.size > 5 * 1024 * 1024) {
+                showToast("Nuotrauka negali būti didesnė nei 5 MB.", "error");
+                return;
+            }
+
 
             try {
 
@@ -1333,6 +1361,13 @@ if (editRecipeForm) {
                     throw new Error(
                         errorText ||
                         "Nepavyko atnaujinti recepto"
+                    );
+                }
+
+                if (imageFile instanceof File && imageFile.size > 0) {
+                    await uploadImage(
+                        `${API_URL}/recipes/${recipeId}/image`,
+                        imageFile
                     );
                 }
 

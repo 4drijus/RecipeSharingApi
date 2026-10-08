@@ -351,6 +351,8 @@ Users
 `Recipes.UserId` nurodo vartotoją, kuris sukūrė receptą.
 
 `RefreshTokens.UserId` nurodo vartotoją, kuriam priklauso Refresh Token.
+`Recipes.ImageUrl` ir `Categories.ImageUrl` saugo Cloudinary nuotraukų URL;
+pačių paveikslėlių dvejetainiai duomenys DB nelaikomi.
 
 Duomenų bazės struktūra valdoma naudojant Entity Framework Core migracijas.
 
@@ -404,7 +406,9 @@ atnaujinami automatiškai.
 | GET    | `/api/categories`      | Gauti kategorijas          | Nereikalinga |
 | GET    | `/api/categories/{id}` | Gauti konkrečią kategoriją | Nereikalinga |
 | POST   | `/api/categories`      | Sukurti kategoriją         | `Admin`      |
+| POST   | `/api/categories/with-image` | Sukurti kategoriją su nuotrauka | `Admin` |
 | PUT    | `/api/categories/{id}` | Atnaujinti kategoriją      | `Admin`      |
+| POST   | `/api/categories/{id}/image` | Įkelti arba pakeisti nuotrauką | `Admin` |
 | DELETE | `/api/categories/{id}` | Ištrinti kategoriją        | `Admin`      |
 
 ## Recipes
@@ -415,7 +419,9 @@ atnaujinami automatiškai.
 | GET    | `/api/recipes/{id}`         | Gauti receptą                                | Nereikalinga |
 | GET    | `/api/recipes/{id}/details` | Gauti receptą su kategorija ir ingredientais | Nereikalinga |
 | POST   | `/api/recipes`              | Sukurti receptą                              | Reikalinga   |
+| POST   | `/api/recipes/with-image`   | Sukurti receptą su nuotrauka                 | Reikalinga   |
 | PUT    | `/api/recipes/{id}`         | Atnaujinti receptą                           | Reikalinga   |
+| POST   | `/api/recipes/{id}/image`   | Įkelti arba pakeisti nuotrauką               | Savininkas arba `Admin` |
 | DELETE | `/api/recipes/{id}`         | Ištrinti receptą                             | Reikalinga   |
 
 ## Recipe ingredients
@@ -572,7 +578,8 @@ API tikrina:
 * ar Refresh Token nėra atšauktas;
 * ar Refresh Token nėra pasibaigęs;
 * ar JWT turi galiojantį vartotojo ID ir rolę;
-* ar naudotojas turi teisę valdyti konkretų resursą.
+* ar naudotojas turi teisę valdyti konkretų resursą;
+* ar įkeliama nuotrauka yra JPEG, PNG arba WebP ir neviršija 5 MB.
 
 ---
 
@@ -741,6 +748,44 @@ prisijungimo eilutę ir stiprų JWT raktą, tada patikrinti viešą paslaugos UR
 TiDB nemokamai kvotai viršijus limitą nauji DB prisijungimai gali būti
 atmetami. Render nemokamas Web Service neveiklumui esant užmiega ir turi
 mėnesinį nemokamų valandų limitą.
+
+## Nuotraukų įkėlimas
+
+Naujos receptų ir kategorijų nuotraukos saugomos Cloudinary, o duomenų bazėje
+laikomas tik `ImageUrl`. Esamiems receptams ir kategorijoms be `ImageUrl`
+frontend toliau naudoja projekte esančius paveikslėlius.
+
+Render aplinkoje saugiai nustatykite šiuos Cloudinary aplinkos kintamuosius:
+
+```text
+Cloudinary__CloudName
+Cloudinary__ApiKey
+Cloudinary__ApiSecret
+```
+
+Jų reikšmes rasite Cloudinary paskyros API Keys skiltyje. `ApiSecret` negalima
+įrašyti į `appsettings.json`, Git repozitoriją, Postman kolekciją ar frontendą.
+Be šios konfigūracijos API grąžina `503 Service Unavailable` bandant įkelti
+nuotrauką. Leidžiami JPEG, PNG ir WebP failai iki 5 MB.
+
+Schema papildoma EF Core migracija `20261008183607_AddImageUrls`. Kadangi TiDB
+schema buvo sukurta rankiniu būdu, paleiskite TiDB SQL Editor šias komandas
+vieną kartą prieš diegdami šią programos versiją:
+
+```sql
+ALTER TABLE `Recipes` ADD COLUMN `ImageUrl` longtext CHARACTER SET utf8mb4 NULL;
+ALTER TABLE `Categories` ADD COLUMN `ImageUrl` longtext CHARACTER SET utf8mb4 NULL;
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20261008183607_AddImageUrls', '9.0.0');
+```
+
+Įkeliant naują receptą su nuotrauka, klientas siunčia
+`POST /api/recipes/with-image` kaip `multipart/form-data`. Nauja kategorija su
+nuotrauka kuriama per `POST /api/categories/with-image` (tik `Admin`).
+Neprivalomai nuotrauką galima vėliau įkelti ar pakeisti per
+`POST /api/recipes/{id}/image` arba `POST /api/categories/{id}/image`.
+Naudotojas gali pakeisti tik savo recepto nuotrauką; `Admin` gali keisti bet
+kurio recepto ir bet kurios kategorijos nuotrauką.
 
 ---
 

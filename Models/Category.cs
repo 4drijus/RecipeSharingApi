@@ -8,5 +8,7 @@ public class Category
 
     public string? Description { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
 }

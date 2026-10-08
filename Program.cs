@@ -26,6 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(
 
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddHttpClient<IImageStorageService, CloudinaryImageStorageService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is not configured");
 

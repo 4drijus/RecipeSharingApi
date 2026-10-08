@@ -5,6 +5,7 @@ using RecipeSharingApi.DTOs;
 using RecipeSharingApi.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using RecipeSharingApi.Services;
 
 namespace RecipeSharingApi.Controllers;
 
@@ -13,10 +14,17 @@ namespace RecipeSharingApi.Controllers;
 public class RecipesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IImageStorageService _imageStorage;
+    private readonly ILogger<RecipesController> _logger;
     
-    public RecipesController(AppDbContext context)
+    public RecipesController(
+        AppDbContext context,
+        IImageStorageService imageStorage,
+        ILogger<RecipesController> logger)
     {
         _context = context;
+        _imageStorage = imageStorage;
+        _logger = logger;
     }
 
     // GET (api/recipes)
@@ -57,6 +65,7 @@ public class RecipesController : ControllerBase
                 Title = r.Title,
                 Description = r.Description,
                 Instructions = r.Instructions,
+                ImageUrl = r.ImageUrl,
                 PreparationTime = r.PreparationTime,
                 CategoryId = r.CategoryId,
                 CreatedAt = r.CreatedAt,
@@ -88,6 +97,7 @@ public class RecipesController : ControllerBase
             Title = r.Title,
             Description = r.Description,
             Instructions = r.Instructions,
+            ImageUrl = r.ImageUrl,
             PreparationTime = r.PreparationTime,
             CategoryId = r.CategoryId,
             CreatedAt = r.CreatedAt,
@@ -144,6 +154,7 @@ public class RecipesController : ControllerBase
             Title = recipe.Title,
             Description = recipe.Description,
             Instructions = recipe.Instructions,
+            ImageUrl = recipe.ImageUrl,
             PreparationTime = recipe.PreparationTime,
             CategoryId = recipe.CategoryId,
             CreatedAt = recipe.CreatedAt,
@@ -152,6 +163,110 @@ public class RecipesController : ControllerBase
 
         return CreatedAtAction(nameof(GetRecipe), new
             { id = recipe.Id}, result);
+    }
+
+    /// <summary>Creates a recipe and uploads its image in one request.</summary>
+    [HttpPost("with-image")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 6 * 1024 * 1024)]
+    [ProducesResponseType(typeof(RecipeDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<RecipeDto>> CreateRecipeWithImage(
+        [FromForm] CreateRecipeWithImageRequest request,
+        CancellationToken cancellationToken)
+    {
+        var categoryExists = await _context.Categories
+            .AnyAsync(c => c.Id == request.CategoryId, cancellationToken);
+
+        if (!categoryExists)
+        {
+            return BadRequest("Nurodyta kategorija neegzistuoja");
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (!_imageStorage.IsConfigured)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Nuotraukų saugykla nesukonfigūruota.");
+        }
+
+        if (!ImageUploadValidator.TryGetContentType(request.Image, out _))
+        {
+            return BadRequest("Pasirinkite JPEG, PNG arba WebP nuotrauką iki 5 MB.");
+        }
+
+        string imageUrl;
+        try
+        {
+            imageUrl = await _imageStorage.UploadAsync(
+                request.Image,
+                "recipe-sharing/recipes",
+                cancellationToken);
+        }
+        catch (ImageStorageException exception)
+        {
+            _logger.LogError(exception, "Recipe image upload failed during recipe creation.");
+            return Problem(
+                statusCode: StatusCodes.Status502BadGateway,
+                title: "Nepavyko įkelti recepto nuotraukos į saugyklą.");
+        }
+
+        var recipe = new Recipe
+        {
+            Title = request.Title,
+            Description = request.Description,
+            Instructions = request.Instructions,
+            ImageUrl = imageUrl,
+            PreparationTime = request.PreparationTime,
+            CategoryId = request.CategoryId,
+            CreatedAt = DateTime.UtcNow,
+            UserId = userId
+        };
+
+        _context.Recipes.Add(recipe);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            try
+            {
+                await _imageStorage.DeleteAsync(imageUrl, CancellationToken.None);
+            }
+            catch (ImageStorageException cleanupException)
+            {
+                _logger.LogError(cleanupException, "Could not clean up an image after recipe creation failed.");
+            }
+
+            throw;
+        }
+
+        var result = new RecipeDto
+        {
+            Id = recipe.Id,
+            Title = recipe.Title,
+            Description = recipe.Description,
+            Instructions = recipe.Instructions,
+            ImageUrl = recipe.ImageUrl,
+            PreparationTime = recipe.PreparationTime,
+            CategoryId = recipe.CategoryId,
+            CreatedAt = recipe.CreatedAt,
+            UserId = recipe.UserId
+        };
+
+        return CreatedAtAction(nameof(GetRecipe), new { id = recipe.Id }, result);
     }
 
     // PUT
@@ -206,11 +321,115 @@ public class RecipesController : ControllerBase
             Title = recipe.Title,
             Description = recipe.Description,
             Instructions = recipe.Instructions,
+            ImageUrl = recipe.ImageUrl,
             PreparationTime = recipe.PreparationTime,
             CategoryId = recipe.CategoryId,
             CreatedAt = recipe.CreatedAt,
             UserId = recipe.UserId
         });
+    }
+
+    /// <summary>Uploads or replaces a recipe image in Cloudinary.</summary>
+    [HttpPost("{id:int}/image")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 6 * 1024 * 1024)]
+    [ProducesResponseType(typeof(ImageUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<ImageUploadResponse>> UploadRecipeImage(
+        int id,
+        IFormFile image,
+        CancellationToken cancellationToken)
+    {
+        var recipe = await _context.Recipes
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+        if (recipe is null)
+        {
+            return NotFound();
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (!User.IsInRole("Admin") && recipe.UserId != userId)
+        {
+            return Forbid();
+        }
+
+        if (!_imageStorage.IsConfigured)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Nuotraukų saugykla nesukonfigūruota.");
+        }
+
+        if (!ImageUploadValidator.TryGetContentType(image, out _))
+        {
+            return BadRequest("Pasirinkite JPEG, PNG arba WebP nuotrauką iki 5 MB.");
+        }
+
+        var previousImageUrl = recipe.ImageUrl;
+        string uploadedImageUrl;
+
+        try
+        {
+            uploadedImageUrl = await _imageStorage.UploadAsync(
+                image,
+                "recipe-sharing/recipes",
+                cancellationToken);
+        }
+        catch (ImageStorageException exception)
+        {
+            _logger.LogError(exception, "Recipe image upload failed for recipe {RecipeId}.", id);
+            return Problem(
+                statusCode: StatusCodes.Status502BadGateway,
+                title: "Nepavyko įkelti recepto nuotraukos į saugyklą.");
+        }
+
+        recipe.ImageUrl = uploadedImageUrl;
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            recipe.ImageUrl = previousImageUrl;
+            try
+            {
+                await _imageStorage.DeleteAsync(uploadedImageUrl, CancellationToken.None);
+            }
+            catch (ImageStorageException cleanupException)
+            {
+                _logger.LogError(
+                    cleanupException,
+                    "Could not clean up an uploaded image after saving recipe {RecipeId} failed.",
+                    id);
+            }
+
+            throw;
+        }
+
+        try
+        {
+            await _imageStorage.DeleteAsync(previousImageUrl, cancellationToken);
+        }
+        catch (ImageStorageException exception)
+        {
+            _logger.LogError(exception, "Could not delete the replaced image for recipe {RecipeId}.", id);
+        }
+
+        return Ok(new ImageUploadResponse(uploadedImageUrl));
     }
 
     // DELETE
@@ -261,6 +480,7 @@ public class RecipesController : ControllerBase
                 Title = r.Title,
                 Description = r.Description,
                 Instructions = r.Instructions,
+                ImageUrl = r.ImageUrl,
                 PreparationTime = r.PreparationTime,
                 CreatedAt = r.CreatedAt,
 
@@ -270,7 +490,8 @@ public class RecipesController : ControllerBase
                     {
                         Id = r.Category.Id,
                         Name = r.Category.Name,
-                        Description = r.Category.Description
+                        Description = r.Category.Description,
+                        ImageUrl = r.Category.ImageUrl
                     },
 
                 Ingredients = r.Ingredients

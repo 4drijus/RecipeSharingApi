@@ -12,4 +12,6 @@ public class CategoryDto
 
     [StringLength(500)]
     public string? Description { get; set; }
+
+    public string? ImageUrl { get; set; }
 }

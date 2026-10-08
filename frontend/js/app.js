@@ -395,6 +395,40 @@ async function apiFetch(
     return response;
 }
 
+function getStoredImageUrl(imageUrl) {
+    if (!imageUrl) {
+        return null;
+    }
+
+    try {
+        const url = new URL(imageUrl);
+        return url.protocol === "https:" &&
+            url.hostname === "res.cloudinary.com"
+                ? url.href
+                : null;
+    } catch (error) {
+        console.error("Netinkamas saugomos nuotraukos URL:", error);
+        return null;
+    }
+}
+
+async function uploadImage(url, imageFile) {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    const response = await apiFetch(url, {
+        method: "POST",
+        body: formData
+    });
+
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Nepavyko įkelti nuotraukos.");
+    }
+
+    return response.json();
+}
+
 
 /* =========================
    LOGIN
