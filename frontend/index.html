@@ -17,17 +17,17 @@
 
         <div class="container">
 
-            <a href="#" class="logo">
+            <a href="#recipes" class="logo">
                 Recipe Sharing
             </a>
 
             <nav class="desktop-nav">
 
-                <a href="#recipes">
+                <a href="#recipes" id="recipes-nav-link">
                     Receptai
                 </a>
 
-                <a href="#categories">
+                <a href="#categories" id="categories-nav-link">
                     Kategorijos
                 </a>
 
@@ -62,37 +62,100 @@
 
         <div class="container">
 
-            <!-- HERO -->
-            <section class="hero">
 
-                <h1>
-                    Receptų dalinimosi platforma
-                </h1>
+            <!-- =========================
+                 RECIPES PAGE
+            ========================= -->
 
-                <p>
-                    Atraskite, kurkite ir dalinkitės savo mėgstamiausiais receptais.
-                </p>
+            <section
+                id="recipes-page"
+                class="page-view">
+
+                <!-- HERO -->
+                <section class="hero">
+
+                    <h1>
+                        Receptų dalinimosi platforma
+                    </h1>
+
+                    <p>
+                        Atraskite, kurkite ir dalinkitės savo mėgstamiausiais receptais.
+                    </p>
+
+                </section>
+
+
+                <!-- RECIPES -->
+                <section id="recipes">
+
+                    <div class="section-header">
+
+                        <div>
+                            <h2>
+                                Receptai
+                            </h2>
+                        </div>
+
+                        <button
+                            type="button"
+                            id="add-recipe-button"
+                            class="primary-button hidden">
+
+                            + Pridėti receptą
+
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="recipes-container"
+                        class="recipes-grid">
+
+                    </div>
+
+
+                    <!-- PAGINATION -->
+                    <div
+                        id="pagination"
+                        class="pagination">
+
+                    </div>
+
+                </section>
 
             </section>
 
 
-            <!-- RECIPES -->
-            <section id="recipes">
+            <!-- =========================
+                 CATEGORIES PAGE
+            ========================= -->
+
+            <section
+                id="categories-page"
+                class="page-view hidden">
 
                 <div class="section-header">
 
                     <div>
-                        <h2>
-                            Receptai
-                        </h2>
+
+                        <h1>
+                            Kategorijos
+                        </h1>
+
+                        <p style="color: #666; margin-top: 5px;">
+                            Pasirinkite kategoriją ir peržiūrėkite jos receptus.
+                        </p>
+
                     </div>
+
 
                     <button
                         type="button"
-                        id="add-recipe-button"
+                        id="add-category-button"
                         class="primary-button hidden">
 
-                        + Pridėti receptą
+                        + Pridėti kategoriją
 
                     </button>
 
@@ -100,15 +163,60 @@
 
 
                 <div
-                    id="recipes-container"
+                    id="categories-container"
+                    class="recipes-grid">
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 CATEGORY RECIPES PAGE
+            ========================= -->
+
+            <section
+                id="category-recipes-page"
+                class="page-view hidden">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h1 id="category-recipes-title">
+                            Kategorija
+                        </h1>
+
+                        <p
+                            id="category-recipes-description"
+                            style="color: #666; margin-top: 5px;">
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="back-to-categories-button"
+                    class="secondary-button"
+                    style="margin-bottom: 25px;">
+
+                    ← Visos kategorijos
+
+                </button>
+
+
+                <div
+                    id="category-recipes-container"
                     class="recipes-grid">
 
                 </div>
 
 
-                <!-- PAGINATION -->
                 <div
-                    id="pagination"
+                    id="category-recipes-pagination"
                     class="pagination">
 
                 </div>
@@ -134,7 +242,10 @@
     </footer>
 
 
-    <!-- RECIPE VIEW MODAL -->
+    <!-- =========================
+         RECIPE VIEW MODAL
+    ========================= -->
+
     <div
         id="recipe-modal"
         class="modal hidden">
@@ -174,7 +285,10 @@
     </div>
 
 
-    <!-- ADD RECIPE MODAL -->
+    <!-- =========================
+         ADD RECIPE MODAL
+    ========================= -->
+
     <div
         id="add-recipe-modal"
         class="modal hidden">
@@ -291,7 +405,10 @@
     </div>
 
 
-    <!-- EDIT RECIPE MODAL -->
+    <!-- =========================
+         EDIT RECIPE MODAL
+    ========================= -->
+
     <div
         id="edit-recipe-modal"
         class="modal hidden">
@@ -414,7 +531,214 @@
     </div>
 
 
-    <!-- LOGIN MODAL -->
+    <!-- =========================
+         ADD CATEGORY MODAL
+    ========================= -->
+
+    <div
+        id="add-category-modal"
+        class="modal hidden">
+
+        <div class="modal-content">
+
+            <button
+                type="button"
+                id="close-add-category-modal"
+                class="modal-close">
+
+                ×
+
+            </button>
+
+            <h2>
+                Pridėti kategoriją
+            </h2>
+
+
+            <form id="add-category-form">
+
+                <div class="form-group">
+
+                    <label for="category-name">
+                        Pavadinimas
+                    </label>
+
+                    <input
+                        type="text"
+                        id="category-name"
+                        name="name"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="category-description">
+                        Aprašymas
+                    </label>
+
+                    <textarea
+                        id="category-description"
+                        name="description"></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button form-submit-button">
+
+                    Sukurti kategoriją
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         EDIT CATEGORY MODAL
+    ========================= -->
+
+    <div
+        id="edit-category-modal"
+        class="modal hidden">
+
+        <div class="modal-content">
+
+            <button
+                type="button"
+                id="close-edit-category-modal"
+                class="modal-close">
+
+                ×
+
+            </button>
+
+            <h2>
+                Redaguoti kategoriją
+            </h2>
+
+
+            <form id="edit-category-form">
+
+                <input
+                    type="hidden"
+                    id="edit-category-id"
+                    name="id">
+
+
+                <div class="form-group">
+
+                    <label for="edit-category-name">
+                        Pavadinimas
+                    </label>
+
+                    <input
+                        type="text"
+                        id="edit-category-name"
+                        name="name"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="edit-category-description">
+                        Aprašymas
+                    </label>
+
+                    <textarea
+                        id="edit-category-description"
+                        name="description"></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button form-submit-button">
+
+                    Išsaugoti pakeitimus
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DELETE CATEGORY MODAL
+    ========================= -->
+
+    <div
+        id="delete-category-modal"
+        class="modal hidden">
+
+        <div class="modal-content">
+
+            <button
+                type="button"
+                id="close-delete-category-modal"
+                class="modal-close">
+
+                ×
+
+            </button>
+
+            <h2>
+                Ištrinti kategoriją
+            </h2>
+
+            <p>
+                Ar tikrai norite ištrinti kategoriją
+                <strong id="delete-category-name"></strong>?
+            </p>
+
+            <p>
+                Šio veiksmo atšaukti negalėsite.
+            </p>
+
+
+            <div class="recipe-card-actions">
+
+                <button
+                    type="button"
+                    id="cancel-delete-category"
+                    class="secondary-button">
+
+                    Atšaukti
+
+                </button>
+
+                <button
+                    type="button"
+                    id="confirm-delete-category"
+                    class="primary-button">
+
+                    Ištrinti
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         LOGIN MODAL
+    ========================= -->
+
     <div
         id="login-modal"
         class="modal hidden">
@@ -482,7 +806,10 @@
     </div>
 
 
-    <!-- REGISTER MODAL -->
+    <!-- =========================
+         REGISTER MODAL
+    ========================= -->
+
     <div
         id="register-modal"
         class="modal hidden">
@@ -565,7 +892,12 @@
     </div>
 
 
-    <script src="js/app.js"></script>
+<!-- JAVASCRIPT -->
+<script src="js/app.js"></script>
+<script src="js/recipes.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/ingredients.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 

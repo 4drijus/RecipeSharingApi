@@ -13,6 +13,7 @@ body {
 }
 
 /* HIDDEN */
+
 .hidden {
     display: none !important;
 }
@@ -23,6 +24,7 @@ body {
 }
 
 /* HEADER */
+
 .site-header {
     background: #ffffff;
     border-bottom: 1px solid #e5e5e5;
@@ -59,6 +61,7 @@ body {
 }
 
 /* MOBILE MENU */
+
 .menu-toggle {
     display: none;
     border: none;
@@ -68,6 +71,7 @@ body {
 }
 
 /* MAIN */
+
 .main-content {
     min-height: calc(100vh - 140px);
     padding: 60px 0;
@@ -87,6 +91,7 @@ body {
 }
 
 /* RECIPES */
+
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -116,6 +121,7 @@ body {
 }
 
 /* RECIPE GRID */
+
 .recipes-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -123,6 +129,7 @@ body {
 }
 
 /* RECIPE CARD */
+
 .recipe-card {
     background: #ffffff;
     border-radius: 12px;
@@ -196,6 +203,7 @@ body {
 }
 
 /* PAGINATION */
+
 .pagination {
     display: flex;
     justify-content: center;
@@ -241,6 +249,7 @@ body {
 }
 
 /* MODAL */
+
 .modal {
     position: fixed;
     inset: 0;
@@ -296,6 +305,7 @@ body {
 }
 
 /* RECIPE VIEW MODAL */
+
 .modal-content h2 {
     font-size: 1.7rem;
     margin-bottom: 15px;
@@ -323,6 +333,7 @@ body {
 }
 
 /* ADD RECIPE FORM */
+
 #add-recipe-modal .modal-content {
     width: min(650px, 100%);
 }
@@ -332,6 +343,7 @@ body {
 }
 
 /* FORM GROUP */
+
 .form-group {
     margin-bottom: 20px;
 }
@@ -345,6 +357,7 @@ body {
 }
 
 /* INPUTS */
+
 .form-group input,
 .form-group textarea,
 .form-group select {
@@ -389,6 +402,7 @@ body {
 }
 
 /* FOOTER */
+
 .site-footer {
     background: #222;
     color: white;
@@ -397,6 +411,7 @@ body {
 }
 
 /* ANIMATION */
+
 @keyframes modalAppear {
     from {
         opacity: 0;
@@ -414,6 +429,7 @@ body {
 }
 
 /* RESPONSIVE */
+
 @media (max-width: 768px) {
 
     .desktop-nav {
@@ -422,6 +438,37 @@ body {
 
     .menu-toggle {
         display: block;
+    }
+
+    /* MOBILE NAVIGATION */
+
+    .desktop-nav.active {
+        display: flex;
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        flex-direction: column;
+        gap: 0;
+        width: 210px;
+        padding: 10px 0;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        z-index: 1000;
+    }
+
+    .desktop-nav.active a {
+        display: block;
+        padding: 12px 18px;
+    }
+
+    .site-header {
+        position: relative;
+    }
+
+    .site-header .container {
+        position: relative;
     }
 
     .hero h1 {
