@@ -685,11 +685,62 @@ Pavyzdžiui:
 http://localhost:5000
 ```
 
+Frontend sąsaja pateikiama tame pačiame adrese, o API pasiekiamas per `/api`.
+Sąsaja API bazinį adresą nustato pagal dabartinį puslapio adresą, todėl vietiniam
+ir viešam adresui nereikia atskirų URL kiekvienam API metodui.
+
+Pavyzdžiai:
+
+```text
+http://localhost:5000/api/auth/login
+http://localhost:5000/api/recipes?page=1&pageSize=10
+```
+
 OpenAPI dokumentacija:
 
 ```text
 http://localhost:5000/openapi/v1.json
 ```
+
+## Laikina vieša demonstracija
+
+Cloudflare Quick Tunnel gali laikinai suteikti HTTPS adresą vietiniam
+veikiančiam projektui. Viešas adresas naudoja tokį patį kelių išdėstymą:
+
+```text
+https://<viešas-adresas>/
+https://<viešas-adresas>/api/auth/login
+https://<viešas-adresas>/api/recipes?page=1&pageSize=10
+```
+
+Tai nėra nuolatinis debesijos talpinimas: kompiuteris, API, MySQL ir tunelis
+turi veikti, o tunelio adresas gali pasikeisti jį paleidus iš naujo. API
+kreipiasi į vietinę MySQL duomenų bazę; duomenų bazės prievadas viešai
+neatveriamas. Viešos demonstracijos metu registracija ir API tampa prieinamos
+interneto naudotojams, todėl JWT raktas turi būti perduodamas per saugią
+aplinkos konfigūraciją, o ne įrašomas į frontendą ar viešą Git repozitoriją.
+
+## Nuolatinis nemokamas demonstracinis talpinimas
+
+Projektą galima talpinti kaip vieną Render Web Service: ASP.NET API ir
+`frontend` failai pateikiami tuo pačiu `onrender.com` adresu. Repozitorijos
+šakniniame kataloge esantis `Dockerfile` skirtas šiai publikavimo aplinkai.
+Render Free paslauga neveiklumui esant užmiega, todėl pirmoji užklausa po
+pertraukos gali užtrukti. Tai demonstracinis, ne produkcinis planas.
+
+Nuotolinei MySQL suderinamai duomenų bazei galima naudoti TiDB Cloud Starter
+nemokamą kvotą. Duomenų bazė turi būti pasiekiama per TLS. Render aplinkos
+kintamajame `ConnectionStrings__DefaultConnection` nustatoma TiDB pateikta
+MySQL prisijungimo eilutė, o `Jwt__Key` nustatomas kaip atskiras slaptas
+aplinkos kintamasis. Šių reikšmių negalima įrašyti į Git ar frontendą.
+
+Render Web Service aplinkoje reikia pasirinkti Docker publikavimą,
+repozitorijos šakninį `Dockerfile` ir `Free` planą. Sukūrus TiDB klasterį,
+reikia perkelti DB schemą bei duomenis į jį, Render aplinkoje nustatyti
+prisijungimo eilutę ir stiprų JWT raktą, tada patikrinti viešą paslaugos URL.
+TiDB nemokamai kvotai viršijus limitą nauji DB prisijungimai gali būti
+atmetami. Render nemokamas Web Service neveiklumui esant užmiega ir turi
+mėnesinį nemokamų valandų limitą.
 
 ---
 

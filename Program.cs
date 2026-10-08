@@ -5,8 +5,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseWebRoot(Path.Combine(builder.Environment.ContentRootPath, "frontend"));
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "frontend"
+});
 
 // OpenAPI
 builder.Services.AddOpenApi();
